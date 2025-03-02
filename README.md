@@ -1,8 +1,6 @@
-# FileHasher Pro
+# FileHasher
 
 A modern, secure file upload application that generates multiple hash values for uploaded files with real-time statistics and a beautiful user interface.
-
-![FileHasher Pro](https://i.imgur.com/JQGMHvZ.png)
 
 ## Features
 
