@@ -27,7 +27,7 @@ A modern, secure file upload application that generates multiple hash values for
 
 1. Clone the repository
    ```
-   git clone https://github.com/yourusername/file-hasher-pro.git
+   git clone https://github.com/Elcapitanoe/File-Hasher-V2
    ```
 
 2. Install dependencies
