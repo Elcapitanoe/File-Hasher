@@ -1,4 +1,4 @@
-// Server implementation for File Hasher V2
+// Server implementation for FileHasher Pro
 // This file serves as the entry point for the application
 const express = require('express');
 const path = require('path');
@@ -8,7 +8,15 @@ const fs = require('fs');
 
 const app = express();
 const port = process.env.PORT || 3000;
-const upload = multer({ storage: multer.memoryStorage() });
+
+// Configure multer for file uploads
+const storage = multer.memoryStorage();
+const upload = multer({ 
+    storage: storage,
+    limits: {
+        fileSize: 50 * 1024 * 1024, // 50MB limit
+    }
+});
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
@@ -17,7 +25,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.post('/upload', upload.single('file'), async (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
+            return res.status(400).json({ 
+                error: 'No file uploaded',
+                message: 'Please select a file to upload'
+            });
         }
 
         const fileBuffer = req.file.buffer;
@@ -28,19 +39,25 @@ app.post('/upload', upload.single('file'), async (req, res) => {
         const sha384Hash = generateHash(fileBuffer, 'sha384');
         const sha512Hash = generateHash(fileBuffer, 'sha512');
 
-        // Return file information and hashes
-        res.json({
-            name: req.file.originalname,
-            type: req.file.mimetype,
-            size: req.file.size,
-            sha1Hash,
-            sha256Hash,
-            sha384Hash,
-            sha512Hash
-        });
+        // Add artificial delay for demo purposes (remove in production)
+        // setTimeout(() => {
+            // Return file information and hashes
+            res.json({
+                name: req.file.originalname,
+                type: req.file.mimetype,
+                size: req.file.size,
+                sha1Hash,
+                sha256Hash,
+                sha384Hash,
+                sha512Hash
+            });
+        // }, 500);
     } catch (error) {
         console.error('Error processing file:', error);
-        res.status(500).json({ error: 'Error processing file' });
+        res.status(500).json({ 
+            error: 'Error processing file',
+            message: error.message
+        });
     }
 });
 
@@ -53,5 +70,15 @@ function generateHash(data, algorithm) {
 
 // Start the server
 app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+    console.log(`
+╔════════════════════════════════════════════════╗
+║                                                ║
+║   FileHasher Pro Server                        ║
+║   Running on http://localhost:${port}              ║
+║                                                ║
+║   Version: 2.0.0                               ║
+║   Author: Domi Adiwijaya                       ║
+║                                                ║
+╚════════════════════════════════════════════════╝
+    `);
 });
