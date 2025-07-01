@@ -110,13 +110,25 @@ function updateDropZoneUI(file) {
     // Format file size
     const fileSize = niceBytes(file.size).replace('/s', '');
     
-    fileInfo.innerHTML = `
-        <i class="bi ${fileIcon}"></i>
-        <div class="file-details">
-            <div class="file-name">${file.name}</div>
-            <div class="file-size">${fileSize}</div>
-        </div>
-    `;
+    const fileIconElement = document.createElement('i');
+    fileIconElement.className = `bi ${fileIcon}`;
+    
+    const fileDetailsElement = document.createElement('div');
+    fileDetailsElement.className = 'file-details';
+    
+    const fileNameElement = document.createElement('div');
+    fileNameElement.className = 'file-name';
+    fileNameElement.textContent = file.name;
+    
+    const fileSizeElement = document.createElement('div');
+    fileSizeElement.className = 'file-size';
+    fileSizeElement.textContent = fileSize;
+    
+    fileDetailsElement.appendChild(fileNameElement);
+    fileDetailsElement.appendChild(fileSizeElement);
+    
+    fileInfo.appendChild(fileIconElement);
+    fileInfo.appendChild(fileDetailsElement);
     
     dropZone.appendChild(fileInfo);
     dropZonePrompt.style.display = 'none';
