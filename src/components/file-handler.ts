@@ -102,7 +102,7 @@ export class FileHandler {
       if (files.length === 1) {
         // Create a new FileList-like object
         const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(files[0]);
+        files[0] && dataTransfer.items.add(files[0]);
         fileInput.files = dataTransfer.files;
         this.handleFileSelection();
       }
