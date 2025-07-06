@@ -133,7 +133,7 @@ export class FileHandler {
         return;
       }
 
-      // Use void operator to explicitly ignore the promise
+      // Fixed: Properly handle the file parameter
       void this.processFile(file);
     });
   }
