@@ -54,8 +54,8 @@ function addCustomStyles(): void {
 
 // Application initialization
 class Application {
-  private themeService: ThemeService;
-  private fileHandler: FileHandler;
+  private readonly themeService: ThemeService;
+  private readonly fileHandler: FileHandler;
 
   constructor() {
     this.themeService = new ThemeService();
@@ -64,6 +64,9 @@ class Application {
 
   public initialize(): void {
     console.log('File Hasher V2 initialized successfully');
+    // Services are initialized in constructor, just log success
+    console.log('Theme service active:', this.themeService.getCurrentTheme());
+    console.log('File handler ready');
   }
 }
 
