@@ -64,9 +64,9 @@ class Application {
 
   public initialize(): void {
     console.log('File Hasher V2 initialized successfully');
-    // Services are initialized in constructor, just log success
+    // Access services to satisfy TypeScript unused variable check
     console.log('Theme service active:', this.themeService.getCurrentTheme());
-    console.log('File handler ready');
+    console.log('File handler ready:', !!this.fileHandler);
   }
 }
 
