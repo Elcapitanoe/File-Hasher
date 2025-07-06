@@ -594,6 +594,23 @@ footer {
   font-size: var(--font-size-sm);
 }
 
+/* Text Color Utilities */
+.text-success {
+  color: var(--success-500) !important;
+}
+
+.text-warning {
+  color: var(--warning-500) !important;
+}
+
+.text-danger {
+  color: var(--error-500) !important;
+}
+
+.text-info {
+  color: var(--primary-400) !important;
+}
+
 /* Animations */
 .animate__animated.animate__fadeIn {
   --animate-duration: 0.5s;
