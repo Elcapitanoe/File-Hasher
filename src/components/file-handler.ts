@@ -133,7 +133,7 @@ export class FileHandler {
         return;
       }
 
-      this.processFile(file);
+      void this.processFile(file);
     });
   }
 
