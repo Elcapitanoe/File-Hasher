@@ -20,9 +20,50 @@ export class FileHandler {
   }
 
   private initialize(): void {
+    this.setupFileInput();
+    this.setupBrowseButton();
     this.setupDragAndDrop();
     this.setupUploadButton();
-    this.setupFileInput();
+  }
+
+  private setupFileInput(): void {
+    const fileInput = getElementById<HTMLInputElement>('file');
+    if (!fileInput) {
+      console.error('File input not found');
+      return;
+    }
+
+    // Configure file input to be hidden but functional
+    this.configureFileInput(fileInput);
+
+    // Handle file selection changes
+    fileInput.addEventListener('change', () => {
+      console.log('File input changed:', fileInput.files);
+      this.handleFileSelection();
+    });
+  }
+
+  private setupBrowseButton(): void {
+    const browseButton = getElementById<HTMLButtonElement>('browse-button');
+    const fileInput = getElementById<HTMLInputElement>('file');
+    
+    if (!browseButton || !fileInput) {
+      console.error('Browse button or file input not found');
+      return;
+    }
+
+    console.log('Setting up browse button...');
+
+    browseButton.addEventListener('click', (e) => {
+      console.log('Browse button clicked');
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (!this.uploadState.isProcessing) {
+        console.log('Triggering file input click');
+        fileInput.click();
+      }
+    });
   }
 
   private setupDragAndDrop(): void {
@@ -34,11 +75,17 @@ export class FileHandler {
       return;
     }
 
-    // Configure file input
-    this.configureFileInput(fileInput);
-
-    // Click handler for drop zone
+    // Click handler for drop zone (but exclude browse button area)
     dropZone.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      
+      // Don't trigger file input if clicking on browse button or its children
+      if (target.closest('#browse-button') || target.closest('.browse-alternative')) {
+        console.log('Click on browse area, ignoring drop zone click');
+        return;
+      }
+      
+      console.log('Drop zone clicked, triggering file input');
       e.preventDefault();
       e.stopPropagation();
       
@@ -47,21 +94,19 @@ export class FileHandler {
       }
     });
 
-    // File input change handler
-    fileInput.addEventListener('change', () => {
-      this.handleFileSelection();
-    });
-
     // Drag and drop event handlers
     this.setupDragEvents(dropZone);
     this.setupDropHandler(dropZone, fileInput);
   }
 
   private configureFileInput(fileInput: HTMLInputElement): void {
+    // Ensure the file input is properly hidden but still functional
     fileInput.style.position = 'absolute';
     fileInput.style.left = '-9999px';
     fileInput.style.opacity = '0';
     fileInput.style.pointerEvents = 'none';
+    fileInput.style.width = '1px';
+    fileInput.style.height = '1px';
   }
 
   private setupDragEvents(dropZone: HTMLElement): void {
@@ -133,23 +178,15 @@ export class FileHandler {
         return;
       }
 
-      // Fixed: Properly handle the file parameter
       void this.processFile(file);
-    });
-  }
-
-  private setupFileInput(): void {
-    const fileInput = getElementById<HTMLInputElement>('file');
-    if (!fileInput) return;
-
-    fileInput.addEventListener('change', () => {
-      this.handleFileSelection();
     });
   }
 
   private handleFileSelection(): void {
     const fileInput = getElementById<HTMLInputElement>('file');
     const file = fileInput?.files?.[0];
+    
+    console.log('Handling file selection:', file?.name);
     
     if (!file) {
       this.uiManager.resetDropZone();
