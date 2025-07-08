@@ -47,7 +47,7 @@
     "crypto-js": "^4.2.0",
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.5.4",
-    "lucide-react": "^0.468.0"
+    "lucide-react": "^0.525.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.17",
