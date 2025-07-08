@@ -18,6 +18,9 @@ export default [
         document: 'readonly',
         setTimeout: 'readonly',
         window: 'readonly',
+        localStorage: 'readonly',
+        console: 'readonly',
+        performance: 'readonly',
       },
     },
     plugins: {

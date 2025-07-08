@@ -6,7 +6,7 @@ import App from './App';
 const initializeTheme = () => {
   const stored = localStorage.getItem('file-hasher-theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const theme = stored || (prefersDark ? 'dark' : 'light');
+  const theme = stored ?? (prefersDark ? 'dark' : 'light');
   
   document.documentElement.classList.add(theme);
 };

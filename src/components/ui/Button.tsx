@@ -43,7 +43,7 @@ export function Button({
       disabled={disabled || loading}
       {...props}
     >
-      {loading && (
+      {(loading ?? false) && (
         <svg className="spinner mr-2" fill="none" viewBox="0 0 24 24">
           <circle
             className="opacity-25"
