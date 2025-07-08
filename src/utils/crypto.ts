@@ -54,7 +54,6 @@ export async function calculateAllHashes(
   file: File,
   onProgress?: (progress: ProcessingProgress) => void
 ): Promise<Record<string, string>> {
-  const startTime = performance.now();
   const algorithms: HashAlgorithm[] = ['MD5', 'SHA-1', 'SHA-256', 'SHA-512'];
   const results: Record<string, string> = {};
   

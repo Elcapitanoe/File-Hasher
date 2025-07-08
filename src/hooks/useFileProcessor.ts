@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import type { HashResult, ProcessingProgress, ProcessingState } from '../types';
 import { calculateAllHashes } from '../utils/crypto';
 import { validateFileOrThrow } from '../utils/validation';
-import { FileProcessingError } from '../types';
 
 interface UseFileProcessorReturn {
   processingState: ProcessingState;
@@ -49,12 +48,12 @@ export function useFileProcessor(): UseFileProcessorReturn {
       // Create result
       const hashResult: HashResult = {
         name: file.name,
-        type: file.type,
+        type: file.type || 'unknown',
         size: file.size,
-        md5: hashes.md5,
-        sha1: hashes.sha1,
-        sha256: hashes.sha256,
-        sha512: hashes.sha512,
+        md5: hashes.md5 ?? '',
+        sha1: hashes.sha1 ?? '',
+        sha256: hashes.sha256 ?? '',
+        sha512: hashes.sha512 ?? '',
         processedAt: new Date().toISOString(),
         processingTime,
       };

@@ -2,7 +2,6 @@ import React, { useCallback, useState } from 'react';
 import { Upload, File, X } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { formatBytes, formatFileType } from '../utils/formatters';
-import { getFileIcon } from '../utils/file-icons';
 import { validateFile } from '../utils/validation';
 import { Button } from './ui/Button';
 
@@ -41,7 +40,7 @@ export function FileDropZone({
 
     if (disabled) return;
 
-    const files = Array.from(e.dataTransfer.files);
+    const files = Array.from(e.dataTransfer.files ?? []);
     if (files.length === 0) return;
 
     if (files.length > 1) {
@@ -53,7 +52,7 @@ export function FileDropZone({
     const validation = validateFile(file);
 
     if (!validation.isValid) {
-      setError(validation.errors[0]);
+      setError(validation.errors[0] ?? 'Validation failed');
       return;
     }
 
@@ -62,14 +61,14 @@ export function FileDropZone({
 
   const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
-    const files = e.target.files;
+    const files = e.target.files ?? null;
     if (!files || files.length === 0) return;
 
     const file = files[0];
     const validation = validateFile(file);
 
     if (!validation.isValid) {
-      setError(validation.errors[0]);
+      setError(validation.errors[0] ?? 'Validation failed');
       return;
     }
 

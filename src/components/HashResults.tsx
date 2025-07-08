@@ -118,7 +118,7 @@ export function HashResults({ result }: HashResultsProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleCopy(key, value)}
+                  onClick={() => { void handleCopy(key, value); }}
                   className="p-1 h-auto"
                   title={`Copy ${label} hash`}
                 >

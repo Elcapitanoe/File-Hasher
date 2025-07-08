@@ -69,7 +69,7 @@ function App() {
             {selectedFile && !hasResult && (
               <div className="flex justify-center animate-in">
                 <Button
-                  onClick={handleProcess}
+                  onClick={() => { void handleProcess(); }}
                   loading={isProcessing}
                   disabled={!selectedFile || isProcessing}
                   size="lg"

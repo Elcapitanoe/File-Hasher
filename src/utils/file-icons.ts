@@ -73,6 +73,8 @@ export function getFileIcon(mimeType: string): string {
   
   // Check for category match
   const category = mimeType.split('/')[0];
+  if (!category) return 'file';
+  
   const categoryMap: Record<string, string> = {
     'image': 'image',
     'video': 'video',
@@ -81,5 +83,5 @@ export function getFileIcon(mimeType: string): string {
     'application': 'file',
   };
   
-  return categoryMap[category] || 'file';
+  return categoryMap[category] ?? 'file';
 }
