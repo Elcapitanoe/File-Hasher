@@ -23,13 +23,15 @@ export function Button({
     primary: 'btn-primary',
     secondary: 'btn-secondary',
     ghost: 'btn-ghost',
-  };
+  } as const;
   
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-xs',
     md: 'px-4 py-2 text-sm',
     lg: 'px-6 py-3 text-base',
-  };
+  } as const;
+
+  const isDisabled = disabled || loading;
 
   return (
     <button
@@ -38,13 +40,20 @@ export function Button({
         variantClasses[variant],
         sizeClasses[size],
         loading && 'cursor-wait',
+        isDisabled && 'opacity-50 cursor-not-allowed',
         className
       )}
-      disabled={disabled || loading}
+      disabled={isDisabled}
+      aria-disabled={isDisabled}
       {...props}
     >
-      {(loading ?? false) && (
-        <svg className="spinner mr-2" fill="none" viewBox="0 0 24 24">
+      {loading && (
+        <svg 
+          className="spinner mr-2" 
+          fill="none" 
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
           <circle
             className="opacity-25"
             cx="12"

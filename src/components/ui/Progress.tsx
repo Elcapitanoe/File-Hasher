@@ -35,6 +35,11 @@ export function Progress({
         <div
           className="progress-bar h-full transition-all duration-300 ease-out"
           style={{ width: `${percentage}%` }}
+          role="progressbar"
+          aria-valuenow={percentage}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={label ?? 'Progress'}
         />
       </div>
     </div>

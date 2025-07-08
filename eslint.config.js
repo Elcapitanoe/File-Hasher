@@ -21,6 +21,8 @@ export default [
         localStorage: 'readonly',
         console: 'readonly',
         performance: 'readonly',
+        crypto: 'readonly',
+        navigator: 'readonly',
       },
     },
     plugins: {
@@ -46,8 +48,12 @@ export default [
       '@typescript-eslint/prefer-optional-chain': 'error',
       '@typescript-eslint/no-unnecessary-type-assertion': 'error',
       '@typescript-eslint/no-non-null-assertion': 'error',
+      '@typescript-eslint/strict-boolean-expressions': 'error',
+      '@typescript-eslint/prefer-as-const': 'error',
+      '@typescript-eslint/no-floating-promises': 'error',
       'prefer-const': 'error',
       'no-var': 'error',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },

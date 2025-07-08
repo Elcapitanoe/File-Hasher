@@ -10,10 +10,13 @@ interface UseFileProcessorReturn {
   error: string | null;
   processFile: (file: File) => Promise<void>;
   reset: () => void;
+  isProcessing: boolean;
+  isCompleted: boolean;
+  hasError: boolean;
 }
 
 /**
- * Hook for processing files and calculating hashes
+ * Hook for processing files and calculating hashes with comprehensive error handling
  */
 export function useFileProcessor(): UseFileProcessorReturn {
   const [processingState, setProcessingState] = useState<ProcessingState>('idle');
@@ -29,7 +32,7 @@ export function useFileProcessor(): UseFileProcessorReturn {
       setProgress(null);
       setProcessingState('processing');
 
-      // Validate file
+      // Validate file with comprehensive checks
       validateFileOrThrow(file, {
         maxSize: 1024 * 1024 * 1024, // 1GB
         minSize: 1,
@@ -45,10 +48,10 @@ export function useFileProcessor(): UseFileProcessorReturn {
       const endTime = performance.now();
       const processingTime = (endTime - startTime) / 1000;
 
-      // Create result
+      // Create result with all required fields
       const hashResult: HashResult = {
         name: file.name,
-        type: file.type || 'unknown',
+        type: file.type || 'application/octet-stream',
         size: file.size,
         md5: hashes.md5 ?? '',
         sha1: hashes.sha1 ?? '',
@@ -71,7 +74,10 @@ export function useFileProcessor(): UseFileProcessorReturn {
       });
 
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : 'An unknown error occurred during file processing';
+      
       setError(errorMessage);
       setProcessingState('error');
       setProgress(null);
@@ -94,5 +100,8 @@ export function useFileProcessor(): UseFileProcessorReturn {
     error,
     processFile,
     reset,
+    isProcessing: processingState === 'processing',
+    isCompleted: processingState === 'completed',
+    hasError: processingState === 'error',
   };
 }

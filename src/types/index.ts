@@ -58,41 +58,50 @@ export interface HashConfig {
   readonly algorithm: HashAlgorithm;
   readonly label: string;
   readonly description: string;
+  readonly isSecure: boolean;
 }
 
 // Error Types
 export class FileProcessingError extends Error {
+  public readonly code: string;
+  public readonly originalError?: Error;
+
   constructor(
     message: string,
-    public readonly code: string,
-    public readonly originalError?: Error
+    code: string,
+    originalError?: Error
   ) {
     super(message);
     this.name = 'FileProcessingError';
+    this.code = code;
+    this.originalError = originalError;
   }
 }
 
 export class ValidationError extends Error {
+  public readonly errors: readonly string[];
+
   constructor(
     message: string,
-    public readonly errors: readonly string[]
+    errors: readonly string[]
   ) {
     super(message);
     this.name = 'ValidationError';
+    this.errors = errors;
   }
 }
 
 // Utility Types
 export type Prettify<T> = {
   [K in keyof T]: T[K];
-} & {};
+} & Record<string, never>;
 
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export type RequiredKeys<T> = {
-  [K in keyof T]-?: {} extends Pick<T, K> ? never : K;
+  [K in keyof T]-?: Record<string, never> extends Pick<T, K> ? never : K;
 }[keyof T];
 
 export type OptionalKeys<T> = {
-  [K in keyof T]-?: {} extends Pick<T, K> ? K : never;
+  [K in keyof T]-?: Record<string, never> extends Pick<T, K> ? K : never;
 }[keyof T];

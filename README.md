@@ -59,12 +59,14 @@ A modern, secure, and privacy-focused file hash generator built with React, Type
 |---------|-------------|
 | `npm run dev` | Start development server |
 | `npm run build` | Build for production |
+| `npm run build:prod` | Production build with all checks |
 | `npm run preview` | Preview production build |
 | `npm run type-check` | Run TypeScript type checking |
 | `npm run lint` | Run ESLint |
 | `npm run lint:fix` | Fix ESLint errors automatically |
 | `npm run format` | Format code with Prettier |
 | `npm run format:check` | Check code formatting |
+| `npm run clean` | Clean build directory |
 
 ### Project Structure
 
@@ -97,8 +99,6 @@ File-Hasher-V2/
 │   ├── App.tsx            # Main application component
 │   └── main.tsx           # Application entry point
 ├── docs/                  # Documentation files
-├── netlify.toml           # Netlify deployment config
-├── vercel.json            # Vercel deployment config
 ├── tailwind.config.js     # Tailwind CSS configuration
 ├── tsconfig.json          # TypeScript configuration
 ├── vite.config.ts         # Vite build configuration
@@ -114,43 +114,68 @@ File-Hasher-V2/
 - **Icons**: Lucide React for consistent iconography
 - **Linting**: ESLint + Prettier for code quality
 - **Type Safety**: Strict TypeScript configuration
-- **Testing**: Built-in type checking and linting
-- **CI/CD**: GitHub Actions for automated testing and deployment
 
-## 🎨 Design System
+## 🚀 Deployment
 
-### Color Palette
+This application can be deployed to any static hosting provider. The build output is in the `dist/` directory after running `npm run build`.
 
-The application features a carefully crafted color system optimized for both light and dark themes:
+### Universal Deployment Instructions
 
-#### Light Theme
-- **Primary**: Blue 600 (#2563eb) - Main brand color
-- **Background**: White (#ffffff) - Clean, minimal background
-- **Surface**: Gray 50 (#f8fafc) - Card and component backgrounds
-- **Text**: Gray 900 (#111827) - High contrast text
-- **Border**: Gray 200 (#e5e7eb) - Subtle borders and dividers
+1. **Build the project**
+   ```bash
+   npm run build:prod
+   ```
 
-#### Dark Theme
-- **Primary**: Blue 400 (#60a5fa) - Accessible brand color
-- **Background**: Dark 900 (#0f172a) - Deep, comfortable background
-- **Surface**: Dark 800 (#1e293b) - Elevated component backgrounds
-- **Text**: Gray 100 (#f3f4f6) - High contrast text
-- **Border**: Dark 700 (#334155) - Subtle borders and dividers
+2. **Deploy the `dist/` folder** to your hosting provider
 
-### Typography
+### Recommended Hosting Providers
 
-- **Font Family**: Inter (sans-serif) for UI, JetBrains Mono for code
-- **Font Weights**: 300, 400, 500, 600, 700
-- **Line Heights**: 150% for body text, 120% for headings
-- **Font Features**: Ligatures and contextual alternates enabled
+#### **Vercel** (Recommended)
+1. Connect your GitHub repository to Vercel
+2. Set build command: `npm run build`
+3. Set output directory: `dist`
+4. Deploy automatically on push
 
-### Spacing System
+#### **Netlify**
+1. Connect your GitHub repository to Netlify
+2. Set build command: `npm run build`
+3. Set publish directory: `dist`
+4. Deploy automatically on push
 
-Consistent 8px spacing system throughout the application:
-- **Base unit**: 8px
-- **Common spacings**: 8px, 16px, 24px, 32px, 48px, 64px
-- **Component padding**: Multiples of 8px
-- **Grid gaps**: 16px, 24px, 32px
+#### **GitHub Pages**
+1. Build the project: `npm run build`
+2. Push the `dist/` contents to `gh-pages` branch
+3. Enable GitHub Pages in repository settings
+
+#### **Cloudflare Pages**
+1. Connect your GitHub repository
+2. Set build command: `npm run build`
+3. Set output directory: `dist`
+4. Deploy automatically
+
+#### **FTP/SFTP Upload**
+1. Build the project: `npm run build`
+2. Upload all files from `dist/` to your web server
+3. Ensure your server serves `index.html` for all routes
+
+#### **Other Static Hosts**
+The application works with any static hosting provider:
+- Firebase Hosting
+- AWS S3 + CloudFront
+- Azure Static Web Apps
+- DigitalOcean App Platform
+- Surge.sh
+- And many more...
+
+### Build Configuration
+
+The build is optimized for performance and security:
+
+- **Code Splitting**: Vendor, crypto, and UI chunks
+- **Tree Shaking**: Unused code elimination
+- **Asset Optimization**: Minification and compression
+- **Modern JavaScript**: ES2020 target for better performance
+- **Source Maps**: Available for debugging
 
 ## 🔐 Security & Privacy
 
@@ -195,68 +220,6 @@ File Hasher V2 is designed with security and privacy as fundamental principles:
 - **ES2020**: Modern JavaScript features
 - **CSS Grid & Flexbox**: For responsive layouts
 
-## 🚀 Deployment
-
-### Vercel (Recommended)
-
-1. **Connect Repository**: Link your GitHub repository to Vercel
-2. **Configure Settings**:
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-   - Install Command: `npm install`
-3. **Deploy**: Automatic deployments on push to main branch
-
-### Netlify
-
-1. **Connect Repository**: Link your GitHub repository to Netlify
-2. **Build Settings**: Pre-configured in `netlify.toml`
-3. **Deploy**: Automatic deployments with optimized configuration
-
-### Manual Deployment
-
-```bash
-# Build the project
-npm run build
-
-# Deploy the dist/ folder to your hosting provider
-```
-
-### Performance Optimizations
-
-- **Code Splitting**: Vendor, crypto, and UI chunks
-- **Tree Shaking**: Unused code elimination
-- **Asset Optimization**: Image and font optimization
-- **Compression**: Gzip/Brotli compression support
-- **Caching**: Aggressive caching for static assets
-- **Bundle Analysis**: Optimized chunk sizes
-
-## 🔧 Configuration
-
-### Environment Variables
-
-No environment variables are required for basic functionality. The application runs entirely client-side.
-
-### Build Configuration
-
-The build is optimized for performance and security:
-
-```javascript
-// vite.config.ts highlights
-export default defineConfig({
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          crypto: ['crypto-js'],
-          ui: ['lucide-react', 'clsx', 'tailwind-merge'],
-        },
-      },
-    },
-  },
-});
-```
-
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
@@ -282,20 +245,11 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-### Third-Party Licenses
-
-- **React**: MIT License - Copyright (c) Meta Platforms, Inc.
-- **TypeScript**: Apache License 2.0 - Copyright (c) Microsoft Corporation
-- **Tailwind CSS**: MIT License - Copyright (c) Tailwind Labs, Inc.
-- **Vite**: MIT License - Copyright (c) 2019-present, Yuxi (Evan) You
-- **crypto-js**: MIT License - Copyright (c) 2009-2013 Jeff Mott
-
 ## 👨‍💻 Author
 
 **Domi Adiwijaya (@Elcapitanoe)**
 - Email: [domy.adiwijaya@gmail.com](mailto:domy.adiwijaya@gmail.com)
 - GitHub: [@Elcapitanoe](https://github.com/Elcapitanoe)
-- Website: [File Hasher V2](https://file-hasher-v2.vercel.app)
 
 ## 🙏 Acknowledgments
 
@@ -315,44 +269,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **First Contentful Paint**: < 1s
 - **Cumulative Layout Shift**: 0
 - **Largest Contentful Paint**: < 2.5s
-
-## 🔄 Changelog
-
-### Version 2.0.0 (Current)
-- ✨ Complete rewrite with modern React and TypeScript
-- 🎨 New responsive design with dark/light theme support
-- ⚡ Improved performance with streaming hash calculation
-- 🔒 Enhanced security and privacy features
-- ♿ Better accessibility and mobile support
-- 🛠️ Comprehensive error handling and validation
-- 📱 Progressive Web App capabilities
-- 🚀 Optimized build and deployment configuration
-
-### Roadmap
-- 🔮 Additional hash algorithms (SHA-3, BLAKE2)
-- 📊 Batch file processing
-- 🎯 File integrity verification
-- 📱 Offline PWA functionality
-- 🌐 Internationalization support
-
-## 🆘 Support
-
-### Getting Help
-
-1. **Documentation**: Check this README and inline code comments
-2. **Issues**: Search existing [GitHub Issues](https://github.com/Elcapitanoe/File-Hasher-V2/issues)
-3. **New Issue**: Create a detailed issue report
-4. **Contact**: Reach out to [Domi Adiwijaya](mailto:domy.adiwijaya@gmail.com)
-
-### Reporting Issues
-
-When reporting issues, please include:
-- Browser and OS information
-- Steps to reproduce the issue
-- Expected vs actual behavior
-- File types and sizes (if applicable)
-- Console error messages
-- Screenshots (if helpful)
 
 ---
 

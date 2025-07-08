@@ -18,6 +18,8 @@ function App() {
     error,
     processFile,
     reset,
+    isProcessing,
+    isCompleted,
   } = useFileProcessor();
 
   const handleFileSelect = (file: File) => {
@@ -35,14 +37,13 @@ function App() {
     reset();
   };
 
-  const isProcessing = processingState === 'processing';
-  const hasResult = processingState === 'completed' && result;
+  const hasResult = isCompleted && result;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-dark-900 flex flex-col">
       <Header />
       
-      <main className="flex-1">
+      <main className="flex-1" role="main">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Hero Section */}
           <div className="text-center mb-12 animate-in">
