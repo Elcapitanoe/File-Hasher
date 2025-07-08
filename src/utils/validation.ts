@@ -1,59 +1,66 @@
-import type { ValidationOptions, ValidationResult, FileInfo } from '../types';
-import { formatBytes } from './formatters';
+import type { ValidationOptions, ValidationResult } from '../types';
 import { ValidationError } from '../types';
+import { formatBytes } from './formatters';
 
 /**
- * Validate file type and size with comprehensive checks
+ * Default validation options
  */
-export function validateFile(file: File | null, options: ValidationOptions = {}): ValidationResult {
-  const {
-    maxSize = 50 * 1024 * 1024, // 50MB default
-    allowedTypes = null,
-    minSize = 1
-  } = options;
-  
+const DEFAULT_OPTIONS: Required<ValidationOptions> = {
+  maxSize: 1024 * 1024 * 1024, // 1GB
+  minSize: 1, // 1 byte
+  allowedTypes: [], // Empty array means all types allowed
+};
+
+/**
+ * Validate a file against the given options
+ */
+export function validateFile(
+  file: File | null,
+  options: ValidationOptions = {}
+): ValidationResult {
+  const opts = { ...DEFAULT_OPTIONS, ...options };
   const errors: string[] = [];
-  
+
   if (!file) {
-    errors.push('No file provided');
-    return { valid: false, errors };
+    errors.push('No file selected');
+    return { isValid: false, errors };
   }
-  
-  if (file.size < minSize) {
-    errors.push('File is too small');
+
+  // Check file size
+  if (file.size < opts.minSize) {
+    errors.push(`File is too small (minimum: ${formatBytes(opts.minSize)})`);
   }
-  
-  if (file.size > maxSize) {
-    errors.push(`File size exceeds ${formatBytes(maxSize, false)} limit`);
+
+  if (file.size > opts.maxSize) {
+    errors.push(`File is too large (maximum: ${formatBytes(opts.maxSize)})`);
   }
-  
-  if (allowedTypes && !allowedTypes.includes(file.type)) {
-    errors.push('File type not allowed');
+
+  // Check file type if restrictions are specified
+  if (opts.allowedTypes.length > 0 && !opts.allowedTypes.includes(file.type)) {
+    errors.push(`File type "${file.type}" is not allowed`);
   }
-  
-  const fileInfo: FileInfo = {
-    name: file.name,
-    size: file.size,
-    type: file.type,
-    lastModified: file.lastModified
-  };
-  
+
+  // Check for empty file name
+  if (!file.name.trim()) {
+    errors.push('File name cannot be empty');
+  }
+
   return {
-    valid: errors.length === 0,
+    isValid: errors.length === 0,
     errors,
-    file: fileInfo
   };
 }
 
 /**
- * Validate and throw error if file is invalid
+ * Validate file and throw error if invalid
  */
-export function validateFileOrThrow(file: File | null, options: ValidationOptions = {}): FileInfo {
+export function validateFileOrThrow(
+  file: File | null,
+  options: ValidationOptions = {}
+): asserts file is File {
   const result = validateFile(file, options);
   
-  if (!result.valid) {
+  if (!result.isValid) {
     throw new ValidationError('File validation failed', result.errors);
   }
-  
-  return result.file!;
 }

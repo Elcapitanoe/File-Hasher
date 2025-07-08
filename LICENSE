@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2025 Domi Adiwijaya
+Copyright (c) 2025 Domi Adiwijaya (@Elcapitanoe)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,60 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+## Additional Terms for File Hasher V2
+
+### Privacy and Security Notice
+
+This software is designed to process files entirely within the user's browser. 
+No files, file contents, or hash results are transmitted to any external servers 
+or third parties. All cryptographic operations are performed locally using the 
+Web Crypto API and related browser technologies.
+
+### Disclaimer
+
+While this software uses industry-standard cryptographic algorithms, users should:
+
+1. **Verify hash results** using multiple tools for critical security applications
+2. **Keep software updated** to ensure latest security patches
+3. **Understand limitations** of browser-based cryptographic implementations
+4. **Use appropriate algorithms** for their specific security requirements
+
+The authors and contributors make no warranties about the cryptographic strength 
+or security properties of the generated hashes beyond what is provided by the 
+underlying browser implementations and cryptographic libraries.
+
+### Third-Party Dependencies
+
+This software includes the following third-party libraries:
+
+- **React**: MIT License - Copyright (c) Meta Platforms, Inc.
+- **TypeScript**: Apache License 2.0 - Copyright (c) Microsoft Corporation
+- **Tailwind CSS**: MIT License - Copyright (c) Tailwind Labs, Inc.
+- **Vite**: MIT License - Copyright (c) 2019-present, Yuxi (Evan) You
+- **crypto-js**: MIT License - Copyright (c) 2009-2013 Jeff Mott
+- **Lucide React**: ISC License - Copyright (c) 2022, Lucide Contributors
+
+See individual package licenses for complete terms and conditions.
+
+### Contributing
+
+By contributing to this project, you agree to license your contributions under 
+the same MIT License terms. See CONTRIBUTING.md for detailed guidelines.
+
+### Support
+
+This software is provided as-is without warranty. For support, please:
+
+1. Check the documentation and README
+2. Search existing GitHub issues
+3. Create a new issue with detailed information
+4. Contact the maintainer: [@Elcapitanoe](https://github.com/Elcapitanoe)
+)
+
+### Trademark Notice
+
+"File Hasher V2" is a project name and not a registered trademark. The software 
+may be redistributed under different names provided all license terms are met.

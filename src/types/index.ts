@@ -1,5 +1,4 @@
-// Core application types and interfaces
-
+// Core Types
 export interface FileInfo {
   readonly name: string;
   readonly size: number;
@@ -11,62 +10,57 @@ export interface HashResult {
   readonly name: string;
   readonly type: string;
   readonly size: number;
-  readonly sha1Hash: string;
-  readonly sha256Hash: string;
-  readonly sha384Hash: string;
-  readonly sha512Hash: string;
+  readonly md5: string;
+  readonly sha1: string;
+  readonly sha256: string;
+  readonly sha512: string;
   readonly processedAt: string;
+  readonly processingTime: number;
+}
+
+export interface ProcessingProgress {
+  readonly bytesProcessed: number;
+  readonly totalBytes: number;
+  readonly percentage: number;
+  readonly speed: number;
+  readonly estimatedTimeRemaining: number;
 }
 
 export interface ValidationOptions {
   readonly maxSize?: number;
-  readonly allowedTypes?: readonly string[] | null;
+  readonly allowedTypes?: readonly string[];
   readonly minSize?: number;
 }
 
 export interface ValidationResult {
-  readonly valid: boolean;
+  readonly isValid: boolean;
   readonly errors: readonly string[];
-  readonly file?: FileInfo;
 }
 
-export interface SpeedStats {
-  readonly min: number;
-  readonly max: number;
-  readonly avg: number;
-  readonly current: number;
-}
-
-export interface UploadState {
-  isProcessing: boolean;
-  currentFile: File | null;
-}
-
-export type StatusType = 'info' | 'success' | 'warning' | 'error';
-
-export type ButtonState = 'initial' | 'ready' | 'processing';
-
-export interface ButtonConfig {
-  readonly text: string;
-  readonly disabled: boolean;
-  readonly className: string;
-}
-
-export interface ProcessingStats {
-  readonly processingSpeed: number;
-  readonly fileSize: number;
-  readonly totalTime: number;
-  readonly status: string;
-}
-
+// UI Types
 export type Theme = 'light' | 'dark';
 
-export interface ThemeConfig {
+export type ProcessingState = 'idle' | 'processing' | 'completed' | 'error';
+
+export interface UIState {
   readonly theme: Theme;
-  readonly iconClass: string;
+  readonly processingState: ProcessingState;
+  readonly selectedFile: File | null;
+  readonly hashResult: HashResult | null;
+  readonly progress: ProcessingProgress | null;
+  readonly error: string | null;
 }
 
-// Error types
+// Hash Algorithm Types
+export type HashAlgorithm = 'MD5' | 'SHA-1' | 'SHA-256' | 'SHA-512';
+
+export interface HashConfig {
+  readonly algorithm: HashAlgorithm;
+  readonly label: string;
+  readonly description: string;
+}
+
+// Error Types
 export class FileProcessingError extends Error {
   constructor(
     message: string,
@@ -88,8 +82,17 @@ export class ValidationError extends Error {
   }
 }
 
-// Utility types
-export type ElementId = string;
-export type CSSSelector = string;
-export type MimeType = string;
-export type HashAlgorithm = 'sha1' | 'sha256' | 'sha384' | 'sha512';
+// Utility Types
+export type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
+
+export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+export type RequiredKeys<T> = {
+  [K in keyof T]-?: {} extends Pick<T, K> ? never : K;
+}[keyof T];
+
+export type OptionalKeys<T> = {
+  [K in keyof T]-?: {} extends Pick<T, K> ? K : never;
+}[keyof T];

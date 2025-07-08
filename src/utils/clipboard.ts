@@ -1,18 +1,18 @@
 /**
- * Copy text to clipboard with enhanced error handling
+ * Copy text to clipboard with fallback support
  */
 export async function copyToClipboard(text: string): Promise<boolean> {
-  if (!text || typeof text !== 'string') {
-    return false;
-  }
+  if (!text) return false;
   
   try {
+    // Modern clipboard API
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(text);
       return true;
-    } else {
-      return fallbackCopyToClipboard(text);
     }
+    
+    // Fallback for older browsers
+    return fallbackCopyToClipboard(text);
   } catch (error) {
     console.warn('Clipboard API failed, trying fallback:', error);
     return fallbackCopyToClipboard(text);
@@ -20,7 +20,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 }
 
 /**
- * Fallback clipboard copy method for older browsers
+ * Fallback clipboard implementation
  */
 function fallbackCopyToClipboard(text: string): boolean {
   try {
@@ -32,6 +32,8 @@ function fallbackCopyToClipboard(text: string): boolean {
       left: -9999px;
       opacity: 0;
       pointer-events: none;
+      width: 1px;
+      height: 1px;
     `;
     
     document.body.appendChild(textArea);

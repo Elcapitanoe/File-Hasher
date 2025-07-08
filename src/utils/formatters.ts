@@ -1,45 +1,81 @@
 /**
- * Convert bytes to human-readable format with improved precision
+ * Format bytes to human-readable string
  */
-export function formatBytes(bytes: number, isSpeed = true): string {
-  if (!Number.isFinite(bytes) || bytes < 0) {
-    return '0 bytes';
-  }
-  
-  const units = ['bytes', 'KiB', 'MiB', 'GiB', 'TiB'] as const;
-  let unitIndex = 0;
-  let value = bytes;
-  
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex++;
-  }
-  
-  const precision = unitIndex === 0 ? 0 : 2;
-  const suffix = isSpeed && unitIndex > 0 ? '/s' : '';
-  
-  return `${value.toFixed(precision)} ${units[unitIndex]}${suffix}`;
+export function formatBytes(bytes: number, decimals = 2): string {
+  if (!Number.isFinite(bytes) || bytes < 0) return '0 Bytes';
+  if (bytes === 0) return '0 Bytes';
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
 /**
- * Format time in a human-readable way with improved accuracy
+ * Format processing speed
  */
-export function formatTime(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds < 0) {
-    return '0 seconds';
-  }
+export function formatSpeed(bytesPerSecond: number): string {
+  return `${formatBytes(bytesPerSecond)}/s`;
+}
+
+/**
+ * Format time duration
+ */
+export function formatDuration(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds < 0) return '0s';
   
   if (seconds < 1) {
-    return `${(seconds * 1000).toFixed(0)} ms`;
-  } else if (seconds < 60) {
-    return `${seconds.toFixed(2)} seconds`;
-  } else if (seconds < 3600) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes} min ${remainingSeconds.toFixed(0)} sec`;
-  } else {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    return `${hours} hr ${minutes} min`;
+    return `${Math.round(seconds * 1000)}ms`;
   }
+  
+  if (seconds < 60) {
+    return `${seconds.toFixed(1)}s`;
+  }
+  
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  
+  if (minutes < 60) {
+    return `${minutes}m ${remainingSeconds}s`;
+  }
+  
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  
+  return `${hours}h ${remainingMinutes}m`;
+}
+
+/**
+ * Format percentage
+ */
+export function formatPercentage(value: number, decimals = 1): string {
+  return `${value.toFixed(decimals)}%`;
+}
+
+/**
+ * Format file type for display
+ */
+export function formatFileType(mimeType: string): string {
+  if (!mimeType) return 'Unknown';
+  
+  const typeMap: Record<string, string> = {
+    'application/pdf': 'PDF Document',
+    'application/zip': 'ZIP Archive',
+    'application/json': 'JSON File',
+    'text/plain': 'Text File',
+    'text/html': 'HTML Document',
+    'text/css': 'CSS Stylesheet',
+    'text/javascript': 'JavaScript File',
+    'image/jpeg': 'JPEG Image',
+    'image/png': 'PNG Image',
+    'image/gif': 'GIF Image',
+    'image/svg+xml': 'SVG Image',
+    'video/mp4': 'MP4 Video',
+    'audio/mpeg': 'MP3 Audio',
+  };
+  
+  return typeMap[mimeType] || mimeType.split('/')[1]?.toUpperCase() || 'Unknown';
 }
