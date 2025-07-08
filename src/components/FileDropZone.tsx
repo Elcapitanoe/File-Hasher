@@ -116,8 +116,8 @@ export function FileDropZone({
     <div className={cn('space-y-4', className)}>
       <div
         className={cn(
-          'drop-zone',
-          isDragOver && 'dragover',
+          'drop-zone border-2 border-dashed rounded-lg p-6 cursor-pointer',
+          isDragOver && 'border-primary-500 bg-primary-50 dark:bg-primary-900',
           disabled && 'opacity-50 cursor-not-allowed',
           error && 'border-red-300 dark:border-red-600'
         )}
