@@ -3,7 +3,6 @@ import { HashGenerator, type HashAlgorithm } from '../hashGenerator';
 export class HashCard {
   private element: HTMLElement;
   private algorithm: HashAlgorithm;
-  private isGenerating: boolean = false;
 
   constructor(algorithm: HashAlgorithm) {
     this.algorithm = algorithm;
@@ -98,7 +97,6 @@ export class HashCard {
     } catch (error) {
       resultElement.innerHTML = `<span class="hash-error">Error: ${error}</span>`;
     } finally {
-      this.isGenerating = false;
       loadingElement.style.display = 'none';
     }
   }
@@ -114,7 +112,6 @@ export class HashCard {
       return;
     }
 
-    this.isGenerating = true;
     loadingElement.style.display = 'flex';
     copyButton.disabled = true;
 
@@ -125,7 +122,6 @@ export class HashCard {
     } catch (error) {
       resultElement.innerHTML = `<span class="hash-error">Error: ${error}</span>`;
     } finally {
-      this.isGenerating = false;
       loadingElement.style.display = 'none';
     }
   }

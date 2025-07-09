@@ -1,13 +1,13 @@
 import './style.css';
-import { HashGenerator, type HashAlgorithm } from './hashGenerator';
+import { type HashAlgorithm } from './hashGenerator';
 import { HashCard } from './components/HashCard';
 import { InputSection } from './components/InputSection';
 import { FileUpload } from './components/FileUpload';
 
 class HashGeneratorApp {
   private hashCards: Map<HashAlgorithm, HashCard> = new Map();
-  private inputSection: InputSection;
-  private fileUpload: FileUpload;
+  private inputSection!: InputSection;
+  private fileUpload!: FileUpload;
   private debounceTimer: number | null = null;
   private currentMode: 'text' | 'file' = 'text';
 
