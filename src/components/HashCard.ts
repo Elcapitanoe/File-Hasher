@@ -86,7 +86,6 @@ export class HashCard {
       return;
     }
 
-    this.isGenerating = true;
     loadingElement.style.display = 'flex';
     copyButton.disabled = true;
 
