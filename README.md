@@ -1,35 +1,25 @@
 # File Hasher V2
 
-A simple and secure hash generator that works entirely in your browser.
+Client-side hash generator supporting multiple algorithms.
 
 ## Features
 
-- Generate hashes using popular algorithms (MD5, SHA-1, SHA-256, SHA-512, SHA-3)
-- Support for both text input and file uploads
-- All processing happens locally - your data never leaves your browser
-- Clean, modern interface
-- Copy results with one click
+- Hash algorithms: MD5, SHA-1, SHA-256, SHA-512, SHA-3  
+- Input via plain text or file upload  
+- Offline-only processing (no server interaction)  
+- Minimal, responsive UI  
+- One-click hash copy  
 
 ## Usage
 
-1. Choose between text or file input
-2. Enter your text or upload a file
-3. View the generated hashes for all algorithms
-4. Click the copy button to copy any hash to your clipboard
+1. Select input mode: text or file  
+2. Enter text or upload file  
+3. Hashes are computed instantly  
+4. Copy desired hash to clipboard  
 
 ## Development
 
 ```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-```
-
-## License
-
-MIT License - see LICENSE file for details.
+npm install      # Install dependencies
+npm run dev      # Run local dev server
+npm run build    # Build production output
