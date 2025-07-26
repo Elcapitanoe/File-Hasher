@@ -1,6 +1,7 @@
 export class FileUpload {
   private element: HTMLElement;
   private onFileSelect: (file: File) => void;
+  private selectedFile: File | null = null;
 
   constructor(onFileSelect: (file: File) => void) {
     this.onFileSelect = onFileSelect;
@@ -64,7 +65,6 @@ export class FileUpload {
     const dropArea = container.querySelector('#fileDropArea') as HTMLElement;
     const removeBtn = container.querySelector('.remove-file-btn') as HTMLButtonElement;
 
-    // File input change
     fileInput.addEventListener('change', (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
@@ -72,7 +72,6 @@ export class FileUpload {
       }
     });
 
-    // Drag and drop
     dropArea.addEventListener('dragover', (e) => {
       e.preventDefault();
       dropArea.classList.add('drag-over');
@@ -80,7 +79,9 @@ export class FileUpload {
 
     dropArea.addEventListener('dragleave', (e) => {
       e.preventDefault();
-      dropArea.classList.remove('drag-over');
+      if (!dropArea.contains(e.relatedTarget as Node)) {
+        dropArea.classList.remove('drag-over');
+      }
     });
 
     dropArea.addEventListener('drop', (e) => {
@@ -93,12 +94,13 @@ export class FileUpload {
       }
     });
 
-    // Click to select file
-    dropArea.addEventListener('click', () => {
+    dropArea.addEventListener('click', (e) => {
+      if (e.target === removeBtn || removeBtn.contains(e.target as Node)) {
+        return;
+      }
       fileInput.click();
     });
 
-    // Remove file
     removeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       this.clearFile();
@@ -106,13 +108,13 @@ export class FileUpload {
   }
 
   private handleFileSelect(file: File): void {
-    // Check file size (100MB limit)
-    const maxSize = 100 * 1024 * 1024; // 100MB
+    const maxSize = 100 * 1024 * 1024;
     if (file.size > maxSize) {
-      alert('File size exceeds 100MB limit. Please select a smaller file.');
+      this.showError('File size exceeds 100MB limit. Please select a smaller file.');
       return;
     }
 
+    this.selectedFile = file;
     this.showFileInfo(file);
     this.onFileSelect(file);
   }
@@ -138,6 +140,7 @@ export class FileUpload {
     uploadContent.style.display = 'flex';
     selectedInfo.style.display = 'none';
     fileInput.value = '';
+    this.selectedFile = null;
   }
 
   private formatFileSize(bytes: number): string {
@@ -148,7 +151,22 @@ export class FileUpload {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
+  private showError(message: string): void {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-toast';
+    errorDiv.textContent = message;
+    document.body.appendChild(errorDiv);
+
+    setTimeout(() => {
+      errorDiv.remove();
+    }, 3000);
+  }
+
   getElement(): HTMLElement {
     return this.element;
+  }
+
+  getSelectedFile(): File | null {
+    return this.selectedFile;
   }
 }
