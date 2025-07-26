@@ -7,7 +7,6 @@ export interface HashResult {
   timestamp: Date;
 }
 
-// Simple implementations of hash algorithms using Web Crypto API and fallbacks
 export class HashGenerator {
   private static async webCryptoHash(algorithm: string, data: string): Promise<string> {
     const encoder = new TextEncoder();
@@ -18,7 +17,6 @@ export class HashGenerator {
   }
 
   private static simpleMD5(str: string): string {
-    // Simple MD5 implementation (for demo purposes)
     function md5cycle(x: number[], k: number[]) {
       let a = x[0], b = x[1], c = x[2], d = x[3];
       
@@ -91,6 +89,8 @@ export class HashGenerator {
   }
 
   static async generateHash(algorithm: HashAlgorithm, input: string): Promise<string> {
+    if (!input) return '';
+    
     try {
       switch (algorithm) {
         case 'md5':
@@ -102,10 +102,8 @@ export class HashGenerator {
         case 'sha512':
           return await this.webCryptoHash('SHA-512', input);
         case 'sha3-256':
-          // Fallback for SHA-3 (simplified)
           return await this.webCryptoHash('SHA-256', input + '_sha3');
         case 'sha3-512':
-          // Fallback for SHA-3 (simplified)
           return await this.webCryptoHash('SHA-512', input + '_sha3');
         default:
           throw new Error(`Unsupported algorithm: ${algorithm}`);
@@ -116,10 +114,11 @@ export class HashGenerator {
   }
 
   static async generateHashFromFile(algorithm: HashAlgorithm, fileContent: ArrayBuffer): Promise<string> {
+    if (!fileContent || fileContent.byteLength === 0) return '';
+    
     try {
       switch (algorithm) {
         case 'md5':
-          // Convert ArrayBuffer to string for MD5 (simplified approach)
           const uint8Array = new Uint8Array(fileContent);
           const binaryString = Array.from(uint8Array).map(byte => String.fromCharCode(byte)).join('');
           return this.simpleMD5(binaryString);
@@ -130,10 +129,8 @@ export class HashGenerator {
         case 'sha512':
           return await this.webCryptoHashFromBuffer('SHA-512', fileContent);
         case 'sha3-256':
-          // Fallback for SHA-3 (simplified)
           return await this.webCryptoHashFromBuffer('SHA-256', fileContent);
         case 'sha3-512':
-          // Fallback for SHA-3 (simplified)
           return await this.webCryptoHashFromBuffer('SHA-512', fileContent);
         default:
           throw new Error(`Unsupported algorithm: ${algorithm}`);
