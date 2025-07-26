@@ -27,7 +27,7 @@ jobs:
       - name: Create source ZIP
         run: |
           ZIP_NAME="source-${{ github.event.inputs.version }}.zip"
-          # exclude Git metadata and github workflow files
+          # exclude Git metadata and workflow files
           zip -r "$ZIP_NAME" . -x ".git/*" ".github/*"
 
       - name: Upload source artifact
@@ -52,16 +52,21 @@ jobs:
 
       - name: Generate release notes from commits
         id: generate_notes
+        shell: bash
         run: |
+          # Get the previous tag, excluding the current one
           PREV_TAG=$(git tag --sort=-creatordate \
             | grep -v "${{ github.event.inputs.version }}" \
             | head -n1)
+          # Fallback to initial commit if no previous tag found
           if [ -z "$PREV_TAG" ]; then
             PREV_TAG=$(git rev-list --max-parents=0 HEAD)
           fi
+          # Generate changelog entries
           git log $PREV_TAG..HEAD \
             --pretty=format:'- %s ([%h](https://github.com/'"$GITHUB_REPOSITORY"'/commit/%H))' \
             > notes.md
+          # Set multiline output correctly
           echo "notes<<EOF" >> $GITHUB_OUTPUT
           cat notes.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
