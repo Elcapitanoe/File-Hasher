@@ -49,15 +49,37 @@ export class HashCard {
 
     copyButton.addEventListener('click', async () => {
       const hashText = resultElement.textContent;
-      if (hashText && hashText !== 'Hash will appear here...') {
+      if (hashText && hashText !== 'Hash will appear here...' && !hashText.startsWith('Error:')) {
         try {
           await navigator.clipboard.writeText(hashText);
           this.showCopyFeedback(copyButton);
         } catch (error) {
           console.error('Failed to copy:', error);
+          this.fallbackCopyToClipboard(hashText);
         }
       }
     });
+  }
+
+  private fallbackCopyToClipboard(text: string): void {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      document.execCommand('copy');
+      const copyButton = this.element.querySelector('.copy-button') as HTMLButtonElement;
+      this.showCopyFeedback(copyButton);
+    } catch (error) {
+      console.error('Fallback copy failed:', error);
+    } finally {
+      document.body.removeChild(textArea);
+    }
   }
 
   private showCopyFeedback(button: HTMLButtonElement): void {

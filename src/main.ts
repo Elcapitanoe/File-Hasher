@@ -3,11 +3,13 @@ import { type HashAlgorithm } from './hashGenerator';
 import { HashCard } from './components/HashCard';
 import { InputSection } from './components/InputSection';
 import { FileUpload } from './components/FileUpload';
+import { ThemeManager } from './components/ThemeManager';
 
 class HashGeneratorApp {
   private hashCards: Map<HashAlgorithm, HashCard> = new Map();
   private inputSection!: InputSection;
   private fileUpload!: FileUpload;
+  private themeManager!: ThemeManager;
   private debounceTimer: number | null = null;
   private currentMode: 'text' | 'file' = 'text';
 
@@ -33,14 +35,17 @@ class HashGeneratorApp {
                 <p>Simple Hash Generator</p>
               </div>
             </div>
-            <div class="header-stats">
-              <div class="stat">
-                <span class="stat-number">6</span>
-                <span class="stat-label">Algorithms</span>
-              </div>
-              <div class="stat">
-                <span class="stat-number">∞</span>
-                <span class="stat-label">Hashes</span>
+            <div class="header-controls">
+              <div class="theme-selector-container"></div>
+              <div class="header-stats">
+                <div class="stat">
+                  <span class="stat-number">6</span>
+                  <span class="stat-label">Algorithms</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-number">∞</span>
+                  <span class="stat-label">Hashes</span>
+                </div>
               </div>
             </div>
           </div>
@@ -60,22 +65,29 @@ class HashGeneratorApp {
         <footer class="app-footer">
           <div class="footer-content">
             <div class="footer-info">
-              <p>&copy; 2025 File Hasher V2 by <a href="https://github.com/Elcapitanoe" target="_blank" rel="noopener noreferrer" class="author-link">Elcapitanoe</a>. Made with care.</p>
+              <p>&copy; 2025 File Hasher V2 by <a href="https://github.com/Elcapitanoe" target="_blank" rel="noopener noreferrer" class="author-link">Elcapitanoe</a></p>
               <p class="footer-note">All hashing is performed locally in your browser for maximum security.</p>
             </div>
             <div class="footer-links">
               <a href="#" class="footer-link">About</a>
               <a href="#" class="footer-link">Privacy</a>
-              <a href="https://github.com/Elcapitanoe/File-Hasher-V2" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+              <a href="https://github.com/Elcapitanoe/File-Hasher" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
             </div>
           </div>
         </footer>
       </div>
     `;
 
+    this.setupThemeManager();
     this.setupInputSection();
     this.setupHashCards();
     this.setupKeyboardShortcuts();
+  }
+
+  private setupThemeManager(): void {
+    const container = document.querySelector('.theme-selector-container') as HTMLElement;
+    this.themeManager = new ThemeManager();
+    container.appendChild(this.themeManager.getElement());
   }
 
   private setupInputSection(): void {
@@ -89,7 +101,6 @@ class HashGeneratorApp {
 
     container.appendChild(this.inputSection.getElement());
 
-    // Setup file upload component
     this.fileUpload = new FileUpload((file: File) => this.handleFileSelect(file));
     const fileContainer = this.inputSection.getFileContainer();
     fileContainer.appendChild(this.fileUpload.getElement());
@@ -108,13 +119,11 @@ class HashGeneratorApp {
 
   private setupKeyboardShortcuts(): void {
     document.addEventListener('keydown', (event) => {
-      // Ctrl/Cmd + K to focus input
       if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
         event.preventDefault();
         this.inputSection.focus();
       }
       
-      // Ctrl/Cmd + L to clear all
       if ((event.ctrlKey || event.metaKey) && event.key === 'l') {
         event.preventDefault();
         this.handleClearAll();
@@ -125,7 +134,6 @@ class HashGeneratorApp {
   private handleInputChange(value: string): void {
     if (this.currentMode !== 'text') return;
 
-    // Debounce the hash generation to avoid excessive computation
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
     }
@@ -158,7 +166,7 @@ class HashGeneratorApp {
       await this.updateAllHashesFromFile(fileContent);
     } catch (error) {
       console.error('Error reading file:', error);
-      alert('Error reading file. Please try again.');
+      this.showErrorMessage('Error reading file. Please try again.');
     }
   }
 
@@ -198,9 +206,19 @@ class HashGeneratorApp {
       console.error('Error updating hashes from file:', error);
     }
   }
+
+  private showErrorMessage(message: string): void {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-toast';
+    errorDiv.textContent = message;
+    document.body.appendChild(errorDiv);
+
+    setTimeout(() => {
+      errorDiv.remove();
+    }, 3000);
+  }
 }
 
-// Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   new HashGeneratorApp();
 });
