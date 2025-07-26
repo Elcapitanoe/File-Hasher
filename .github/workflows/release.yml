@@ -1,7 +1,7 @@
 permissions:
   contents: write
 
-name: Build and Release Source ZIP
+name: Build and Package Source ZIP
 
 on:
   workflow_dispatch:
@@ -12,80 +12,66 @@ on:
 
 jobs:
   package:
-    name: Package Source Code
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      artifact_name: ${{ steps.gen.outputs.artifact_name }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Prepare release variables
+      - name: Generate artifact filename
+        id: gen
         run: |
-          DATE=$(date +%Y%m%d)
           TAG=${{ github.event.inputs.version }}
-          RELEASE_TITLE="$TAG-$DATE"
-          ZIP_NAME="FileHasher_${RELEASE_TITLE}.zip"
-          echo "DATE=$DATE" >> $GITHUB_ENV
-          echo "RELEASE_TITLE=$RELEASE_TITLE" >> $GITHUB_ENV
-          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          DATE=$(date +%Y%m%d)
+          ART="FileHasher_${TAG}-${DATE}.zip"
+          echo "artifact_name=$ART" >> "$GITHUB_OUTPUT"
 
-      - name: Create source ZIP
-        run: |
-          zip -r "$ZIP_NAME" . -x ".git/*" ".github/*"
+      - name: Create ZIP
+        run: zip -r "${{ steps.gen.outputs.artifact_name }}" . -x ".git/*" ".github/*"
 
-      - name: Upload source artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: "$ZIP_NAME"
-          path: "$ZIP_NAME"
+          name: ${{ steps.gen.outputs.artifact_name }}
+          path: ${{ steps.gen.outputs.artifact_name }}
 
   release:
-    name: Create GitHub Release
     needs: package
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
-      - name: Checkout repository for notes
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Generate release notes from commits
-        id: generate_notes
-        shell: bash
+      - name: Generate release notes
+        id: notes
         run: |
-          PREV_TAG=$(git tag --sort=-creatordate \
-            | grep -v "${{ github.event.inputs.version }}" \
-            | head -n1)
-          if [ -z "$PREV_TAG" ]; then
-            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
-          fi
-          git log $PREV_TAG..HEAD \
-            --pretty=format:'- %s ([%h](https://github.com/'"$GITHUB_REPOSITORY"'/commit/%H))' \
-            > notes.md
+          PREV_TAG=$(git tag --sort=-creatordate | grep -v "${{ github.event.inputs.version }}" | head -n1)
+          [ -z "$PREV_TAG" ] && PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          git log $PREV_TAG..HEAD --pretty=format:'- %s ([%h](https://github.com/'"$GITHUB_REPOSITORY"'/commit/%H))' > notes.md
 
-      - name: Download source artifact
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: "$ZIP_NAME"
+          name: ${{ needs.package.outputs.artifact_name }}
           path: .
 
-      - name: Create Release
-        id: create_release
+      - name: Create GitHub Release
+        id: release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.event.inputs.version }}
-          release_name: ${{ env.RELEASE_TITLE }}
+          release_name: "${{ github.event.inputs.version }}-$(date +%Y%m%d)"
           body_path: notes.md
           draft: false
           prerelease: false
@@ -95,7 +81,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: "$ZIP_NAME"
-          asset_name: "$ZIP_NAME"
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: ${{ needs.package.outputs.artifact_name }}
+          asset_name: ${{ needs.package.outputs.artifact_name }}
           asset_content_type: application/zip
