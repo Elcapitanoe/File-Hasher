@@ -68,7 +68,6 @@ export class InputSection {
         </div>
       </div>
       <div class="file-input-container" style="display: none;">
-        <!-- File upload component will be inserted here -->
       </div>
     `;
 
@@ -83,22 +82,21 @@ export class InputSection {
     const exampleButtons = section.querySelectorAll('.example-btn') as NodeListOf<HTMLButtonElement>;
     const modeButtons = section.querySelectorAll('.mode-btn') as NodeListOf<HTMLButtonElement>;
 
-    // Input change handler
     textarea.addEventListener('input', () => {
       const value = textarea.value;
       this.updateCharacterCount(characterCount, value.length);
       this.onInputChange(value);
+      this.autoResize(textarea);
     });
 
-    // Clear button handler
     clearButton.addEventListener('click', () => {
       textarea.value = '';
       this.updateCharacterCount(characterCount, 0);
       this.onClearAll();
       textarea.focus();
+      this.autoResize(textarea);
     });
 
-    // Example buttons
     exampleButtons.forEach(button => {
       button.addEventListener('click', () => {
         const example = button.dataset.example || '';
@@ -106,22 +104,27 @@ export class InputSection {
         this.updateCharacterCount(characterCount, example.length);
         this.onInputChange(example);
         textarea.focus();
+        this.autoResize(textarea);
       });
     });
 
-    // Auto-resize textarea
-    textarea.addEventListener('input', () => {
-      textarea.style.height = 'auto';
-      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-    });
-
-    // Mode toggle handlers
     modeButtons.forEach(button => {
       button.addEventListener('click', () => {
         const mode = button.dataset.mode as 'text' | 'file';
         this.switchMode(mode);
       });
     });
+
+    textarea.addEventListener('paste', () => {
+      setTimeout(() => {
+        this.autoResize(textarea);
+      }, 0);
+    });
+  }
+
+  private autoResize(textarea: HTMLTextAreaElement): void {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
   }
 
   private switchMode(mode: 'text' | 'file'): void {
@@ -132,12 +135,10 @@ export class InputSection {
     const fileContainer = this.element.querySelector('.file-input-container') as HTMLElement;
     const modeButtons = this.element.querySelectorAll('.mode-btn') as NodeListOf<HTMLButtonElement>;
 
-    // Update button states
     modeButtons.forEach(btn => {
       btn.classList.toggle('active', btn.dataset.mode === mode);
     });
 
-    // Show/hide containers
     if (mode === 'text') {
       textContainer.style.display = 'block';
       fileContainer.style.display = 'none';
@@ -167,6 +168,7 @@ export class InputSection {
     const characterCount = this.element.querySelector('.character-count') as HTMLElement;
     textarea.value = value;
     this.updateCharacterCount(characterCount, value.length);
+    this.autoResize(textarea);
   }
 
   focus(): void {
