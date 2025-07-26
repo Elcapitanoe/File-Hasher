@@ -1,4 +1,4 @@
-# File Hasher V2
+# File Hasher
 
 Client-side hash generator supporting multiple algorithms.
 
