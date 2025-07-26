@@ -13,20 +13,20 @@ on:
 jobs:
   package:
     runs-on: ubuntu-latest
-    permissions:
+    permissions: 
       contents: read
     outputs:
       artifact_name: ${{ steps.gen.outputs.artifact_name }}
-      release_date: ${{ steps.date.outputs.date }}
+      release_date: ${{ steps.current_time.outputs.year }}${{ steps.current_time.outputs.month }}${{ steps.current_time.outputs.day }}
 
     steps:
       - uses: actions/checkout@v4
-        with:
+        with: 
           fetch-depth: 0
 
       - name: Get current date
-        id: date
-        uses: benzine-framework/action-get-datetime@v1
+        id: current_time
+        uses: josStorer/get-current-time@v2
         with:
           format: 'YYYYMMDD'
 
@@ -34,9 +34,8 @@ jobs:
         id: gen
         run: |
           TAG=${{ github.event.inputs.version }}
-          DATE=${{ steps.date.outputs.date }}
-          ART="FileHasher_${TAG}-${DATE}.zip"
-          echo "artifact_name=$ART" >> $GITHUB_OUTPUT
+          DATE=${{ steps.current_time.outputs.formattedTime }}
+          echo "artifact_name=FileHasher_${TAG}-${DATE}.zip" >> $GITHUB_OUTPUT
 
       - name: Create ZIP
         run: zip -r "${{ steps.gen.outputs.artifact_name }}" . -x ".git/*" ".github/*"
