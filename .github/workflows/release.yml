@@ -1,0 +1,95 @@
+permissions:
+  contents: write
+
+name: Build and Release Source ZIP
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+
+jobs:
+  package:
+    name: Package Source Code
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Create source ZIP
+        run: |
+          ZIP_NAME="source-${{ github.event.inputs.version }}.zip"
+          # exclude Git metadata and github workflow files
+          zip -r "$ZIP_NAME" . -x ".git/*" ".github/*"
+
+      - name: Upload source artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-${{ github.event.inputs.version }}
+          path: source-${{ github.event.inputs.version }}.zip
+
+  release:
+    name: Create GitHub Release
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository for notes
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Generate release notes from commits
+        id: generate_notes
+        run: |
+          PREV_TAG=$(git tag --sort=-creatordate \
+            | grep -v "${{ github.event.inputs.version }}" \
+            | head -n1)
+          if [ -z "$PREV_TAG" ]; then
+            PREV_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          git log $PREV_TAG..HEAD \
+            --pretty=format:'- %s ([%h](https://github.com/'"$GITHUB_REPOSITORY"'/commit/%H))' \
+            > notes.md
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          cat notes.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Download source artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: source-${{ github.event.inputs.version }}
+          path: .
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          release_name: "Source Code ${{ github.event.inputs.version }}"
+          body: ${{ steps.generate_notes.outputs.notes }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release ZIP
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: source-${{ github.event.inputs.version }}.zip
+          asset_name: source-${{ github.event.inputs.version }}.zip
+          asset_content_type: application/zip
