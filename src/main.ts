@@ -31,7 +31,7 @@ class HashGeneratorApp {
                 </svg>
               </div>
               <div class="logo-text">
-                <h1>File Hasher V2</h1>
+                <h1>File Hasher</h1>
                 <p>Simple Hash Generator</p>
               </div>
             </div>
@@ -65,7 +65,7 @@ class HashGeneratorApp {
         <footer class="app-footer">
           <div class="footer-content">
             <div class="footer-info">
-              <p>&copy; 2025 File Hasher V2 by <a href="https://github.com/Elcapitanoe" target="_blank" rel="noopener noreferrer" class="author-link">Elcapitanoe</a></p>
+              <p>&copy; 2025 File Hasher by <a href="https://github.com/Elcapitanoe" target="_blank" rel="noopener noreferrer" class="author-link">Elcapitanoe</a></p>
               <p class="footer-note">All hashing is performed locally in your browser for maximum security.</p>
             </div>
             <div class="footer-links">
