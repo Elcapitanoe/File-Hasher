@@ -1,4 +1,4 @@
-import { HashGenerator, type HashAlgorithm } from '../hashGenerator';
+import { HashGenerator, type HashAlgorithm } from "../hashGenerator";
 
 export class HashCard {
   private element: HTMLElement;
@@ -11,9 +11,9 @@ export class HashCard {
 
   private createElement(): HTMLElement {
     const info = HashGenerator.getAlgorithmInfo(this.algorithm);
-    
-    const card = document.createElement('div');
-    card.className = 'hash-card';
+
+    const card = document.createElement("div");
+    card.className = "hash-card";
     card.innerHTML = `
       <div class="hash-card-header">
         <h3 class="hash-algorithm-name">${info.name}</h3>
@@ -44,17 +44,21 @@ export class HashCard {
   }
 
   private setupEventListeners(card: HTMLElement): void {
-    const copyButton = card.querySelector('.copy-button') as HTMLButtonElement;
-    const resultElement = card.querySelector('.hash-result') as HTMLElement;
+    const copyButton = card.querySelector(".copy-button") as HTMLButtonElement;
+    const resultElement = card.querySelector(".hash-result") as HTMLElement;
 
-    copyButton.addEventListener('click', async () => {
+    copyButton.addEventListener("click", async () => {
       const hashText = resultElement.textContent;
-      if (hashText && hashText !== 'Hash will appear here...' && !hashText.startsWith('Error:')) {
+      if (
+        hashText &&
+        hashText !== "Hash will appear here..." &&
+        !hashText.startsWith("Error:")
+      ) {
         try {
           await navigator.clipboard.writeText(hashText);
           this.showCopyFeedback(copyButton);
         } catch (error) {
-          console.error('Failed to copy:', error);
+          console.error("Failed to copy:", error);
           this.fallbackCopyToClipboard(hashText);
         }
       }
@@ -62,21 +66,23 @@ export class HashCard {
   }
 
   private fallbackCopyToClipboard(text: string): void {
-    const textArea = document.createElement('textarea');
+    const textArea = document.createElement("textarea");
     textArea.value = text;
-    textArea.style.position = 'fixed';
-    textArea.style.left = '-999999px';
-    textArea.style.top = '-999999px';
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-    
+
     try {
-      document.execCommand('copy');
-      const copyButton = this.element.querySelector('.copy-button') as HTMLButtonElement;
+      document.execCommand("copy");
+      const copyButton = this.element.querySelector(
+        ".copy-button",
+      ) as HTMLButtonElement;
       this.showCopyFeedback(copyButton);
     } catch (error) {
-      console.error('Fallback copy failed:', error);
+      console.error("Fallback copy failed:", error);
     } finally {
       document.body.removeChild(textArea);
     }
@@ -89,26 +95,33 @@ export class HashCard {
         <polyline points="20,6 9,17 4,12"></polyline>
       </svg>
     `;
-    button.classList.add('copied');
-    
+    button.classList.add("copied");
+
     setTimeout(() => {
       button.innerHTML = originalHTML;
-      button.classList.remove('copied');
+      button.classList.remove("copied");
     }, 2000);
   }
 
   async updateHash(input: string): Promise<void> {
-    const resultElement = this.element.querySelector('.hash-result') as HTMLElement;
-    const loadingElement = this.element.querySelector('.hash-loading') as HTMLElement;
-    const copyButton = this.element.querySelector('.copy-button') as HTMLButtonElement;
+    const resultElement = this.element.querySelector(
+      ".hash-result",
+    ) as HTMLElement;
+    const loadingElement = this.element.querySelector(
+      ".hash-loading",
+    ) as HTMLElement;
+    const copyButton = this.element.querySelector(
+      ".copy-button",
+    ) as HTMLButtonElement;
 
     if (!input.trim()) {
-      resultElement.innerHTML = '<span class="hash-placeholder">Hash will appear here...</span>';
+      resultElement.innerHTML =
+        '<span class="hash-placeholder">Hash will appear here...</span>';
       copyButton.disabled = true;
       return;
     }
 
-    loadingElement.style.display = 'flex';
+    loadingElement.style.display = "flex";
     copyButton.disabled = true;
 
     try {
@@ -118,32 +131,42 @@ export class HashCard {
     } catch (error) {
       resultElement.innerHTML = `<span class="hash-error">Error: ${error}</span>`;
     } finally {
-      loadingElement.style.display = 'none';
+      loadingElement.style.display = "none";
     }
   }
 
   async updateHashFromFile(fileContent: ArrayBuffer): Promise<void> {
-    const resultElement = this.element.querySelector('.hash-result') as HTMLElement;
-    const loadingElement = this.element.querySelector('.hash-loading') as HTMLElement;
-    const copyButton = this.element.querySelector('.copy-button') as HTMLButtonElement;
+    const resultElement = this.element.querySelector(
+      ".hash-result",
+    ) as HTMLElement;
+    const loadingElement = this.element.querySelector(
+      ".hash-loading",
+    ) as HTMLElement;
+    const copyButton = this.element.querySelector(
+      ".copy-button",
+    ) as HTMLButtonElement;
 
     if (!fileContent || fileContent.byteLength === 0) {
-      resultElement.innerHTML = '<span class="hash-placeholder">Hash will appear here...</span>';
+      resultElement.innerHTML =
+        '<span class="hash-placeholder">Hash will appear here...</span>';
       copyButton.disabled = true;
       return;
     }
 
-    loadingElement.style.display = 'flex';
+    loadingElement.style.display = "flex";
     copyButton.disabled = true;
 
     try {
-      const hash = await HashGenerator.generateHashFromFile(this.algorithm, fileContent);
+      const hash = await HashGenerator.generateHashFromFile(
+        this.algorithm,
+        fileContent,
+      );
       resultElement.textContent = hash;
       copyButton.disabled = false;
     } catch (error) {
       resultElement.innerHTML = `<span class="hash-error">Error: ${error}</span>`;
     } finally {
-      loadingElement.style.display = 'none';
+      loadingElement.style.display = "none";
     }
   }
 

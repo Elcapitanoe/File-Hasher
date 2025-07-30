@@ -2,10 +2,14 @@ export class InputSection {
   private element: HTMLElement;
   private onInputChange: (value: string) => void;
   private onClearAll: () => void;
-  private onModeChange: (mode: 'text' | 'file') => void;
-  private currentMode: 'text' | 'file' = 'text';
+  private onModeChange: (mode: "text" | "file") => void;
+  private currentMode: "text" | "file" = "text";
 
-  constructor(onInputChange: (value: string) => void, onClearAll: () => void, onModeChange: (mode: 'text' | 'file') => void) {
+  constructor(
+    onInputChange: (value: string) => void,
+    onClearAll: () => void,
+    onModeChange: (mode: "text" | "file") => void,
+  ) {
     this.onInputChange = onInputChange;
     this.onClearAll = onClearAll;
     this.onModeChange = onModeChange;
@@ -13,8 +17,8 @@ export class InputSection {
   }
 
   private createElement(): HTMLElement {
-    const section = document.createElement('div');
-    section.className = 'input-section';
+    const section = document.createElement("div");
+    section.className = "input-section";
     section.innerHTML = `
       <div class="input-header">
         <div class="input-title-section">
@@ -76,30 +80,40 @@ export class InputSection {
   }
 
   private setupEventListeners(section: HTMLElement): void {
-    const textarea = section.querySelector('.hash-input') as HTMLTextAreaElement;
-    const clearButton = section.querySelector('.clear-button') as HTMLButtonElement;
-    const characterCount = section.querySelector('.character-count') as HTMLElement;
-    const exampleButtons = section.querySelectorAll('.example-btn') as NodeListOf<HTMLButtonElement>;
-    const modeButtons = section.querySelectorAll('.mode-btn') as NodeListOf<HTMLButtonElement>;
+    const textarea = section.querySelector(
+      ".hash-input",
+    ) as HTMLTextAreaElement;
+    const clearButton = section.querySelector(
+      ".clear-button",
+    ) as HTMLButtonElement;
+    const characterCount = section.querySelector(
+      ".character-count",
+    ) as HTMLElement;
+    const exampleButtons = section.querySelectorAll(
+      ".example-btn",
+    ) as NodeListOf<HTMLButtonElement>;
+    const modeButtons = section.querySelectorAll(
+      ".mode-btn",
+    ) as NodeListOf<HTMLButtonElement>;
 
-    textarea.addEventListener('input', () => {
+    textarea.addEventListener("input", () => {
       const value = textarea.value;
       this.updateCharacterCount(characterCount, value.length);
       this.onInputChange(value);
       this.autoResize(textarea);
     });
 
-    clearButton.addEventListener('click', () => {
-      textarea.value = '';
+    clearButton.addEventListener("click", () => {
+      textarea.value = "";
       this.updateCharacterCount(characterCount, 0);
       this.onClearAll();
       textarea.focus();
       this.autoResize(textarea);
     });
 
-    exampleButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const example = button.dataset.example || '';
+    exampleButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const example = button.dataset.example || "";
         textarea.value = example;
         this.updateCharacterCount(characterCount, example.length);
         this.onInputChange(example);
@@ -108,14 +122,14 @@ export class InputSection {
       });
     });
 
-    modeButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const mode = button.dataset.mode as 'text' | 'file';
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const mode = button.dataset.mode as "text" | "file";
         this.switchMode(mode);
       });
     });
 
-    textarea.addEventListener('paste', () => {
+    textarea.addEventListener("paste", () => {
       setTimeout(() => {
         this.autoResize(textarea);
       }, 0);
@@ -123,35 +137,41 @@ export class InputSection {
   }
 
   private autoResize(textarea: HTMLTextAreaElement): void {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+    textarea.style.height = "auto";
+    textarea.style.height = Math.min(textarea.scrollHeight, 200) + "px";
   }
 
-  private switchMode(mode: 'text' | 'file'): void {
+  private switchMode(mode: "text" | "file"): void {
     if (this.currentMode === mode) return;
 
     this.currentMode = mode;
-    const textContainer = this.element.querySelector('.text-input-container') as HTMLElement;
-    const fileContainer = this.element.querySelector('.file-input-container') as HTMLElement;
-    const modeButtons = this.element.querySelectorAll('.mode-btn') as NodeListOf<HTMLButtonElement>;
+    const textContainer = this.element.querySelector(
+      ".text-input-container",
+    ) as HTMLElement;
+    const fileContainer = this.element.querySelector(
+      ".file-input-container",
+    ) as HTMLElement;
+    const modeButtons = this.element.querySelectorAll(
+      ".mode-btn",
+    ) as NodeListOf<HTMLButtonElement>;
 
-    modeButtons.forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.mode === mode);
+    modeButtons.forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.mode === mode);
     });
 
-    if (mode === 'text') {
-      textContainer.style.display = 'block';
-      fileContainer.style.display = 'none';
+    if (mode === "text") {
+      textContainer.style.display = "block";
+      fileContainer.style.display = "none";
     } else {
-      textContainer.style.display = 'none';
-      fileContainer.style.display = 'block';
+      textContainer.style.display = "none";
+      fileContainer.style.display = "block";
     }
 
     this.onModeChange(mode);
   }
 
   private updateCharacterCount(element: HTMLElement, count: number): void {
-    element.textContent = `${count} character${count !== 1 ? 's' : ''}`;
+    element.textContent = `${count} character${count !== 1 ? "s" : ""}`;
   }
 
   getElement(): HTMLElement {
@@ -159,28 +179,36 @@ export class InputSection {
   }
 
   getValue(): string {
-    const textarea = this.element.querySelector('.hash-input') as HTMLTextAreaElement;
+    const textarea = this.element.querySelector(
+      ".hash-input",
+    ) as HTMLTextAreaElement;
     return textarea.value;
   }
 
   setValue(value: string): void {
-    const textarea = this.element.querySelector('.hash-input') as HTMLTextAreaElement;
-    const characterCount = this.element.querySelector('.character-count') as HTMLElement;
+    const textarea = this.element.querySelector(
+      ".hash-input",
+    ) as HTMLTextAreaElement;
+    const characterCount = this.element.querySelector(
+      ".character-count",
+    ) as HTMLElement;
     textarea.value = value;
     this.updateCharacterCount(characterCount, value.length);
     this.autoResize(textarea);
   }
 
   focus(): void {
-    const textarea = this.element.querySelector('.hash-input') as HTMLTextAreaElement;
+    const textarea = this.element.querySelector(
+      ".hash-input",
+    ) as HTMLTextAreaElement;
     textarea.focus();
   }
 
-  getCurrentMode(): 'text' | 'file' {
+  getCurrentMode(): "text" | "file" {
     return this.currentMode;
   }
 
   getFileContainer(): HTMLElement {
-    return this.element.querySelector('.file-input-container') as HTMLElement;
+    return this.element.querySelector(".file-input-container") as HTMLElement;
   }
 }

@@ -1,9 +1,9 @@
-import './style.css';
-import { type HashAlgorithm } from './hashGenerator';
-import { HashCard } from './components/HashCard';
-import { InputSection } from './components/InputSection';
-import { FileUpload } from './components/FileUpload';
-import { ThemeManager } from './components/ThemeManager';
+import "./style.css";
+import { type HashAlgorithm } from "./hashGenerator";
+import { HashCard } from "./components/HashCard";
+import { InputSection } from "./components/InputSection";
+import { FileUpload } from "./components/FileUpload";
+import { ThemeManager } from "./components/ThemeManager";
 
 class HashGeneratorApp {
   private hashCards: Map<HashAlgorithm, HashCard> = new Map();
@@ -11,14 +11,14 @@ class HashGeneratorApp {
   private fileUpload!: FileUpload;
   private themeManager!: ThemeManager;
   private debounceTimer: number | null = null;
-  private currentMode: 'text' | 'file' = 'text';
+  private currentMode: "text" | "file" = "text";
 
   constructor() {
     this.initializeApp();
   }
 
   private initializeApp(): void {
-    document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+    document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
       <div class="app-container">
         <header class="app-header">
           <div class="header-content">
@@ -85,32 +85,45 @@ class HashGeneratorApp {
   }
 
   private setupThemeManager(): void {
-    const container = document.querySelector('.theme-selector-container') as HTMLElement;
+    const container = document.querySelector(
+      ".theme-selector-container",
+    ) as HTMLElement;
     this.themeManager = new ThemeManager();
     container.appendChild(this.themeManager.getElement());
   }
 
   private setupInputSection(): void {
-    const container = document.querySelector('.input-section-container') as HTMLElement;
-    
+    const container = document.querySelector(
+      ".input-section-container",
+    ) as HTMLElement;
+
     this.inputSection = new InputSection(
       (value: string) => this.handleInputChange(value),
       () => this.handleClearAll(),
-      (mode: 'text' | 'file') => this.handleModeChange(mode)
+      (mode: "text" | "file") => this.handleModeChange(mode),
     );
 
     container.appendChild(this.inputSection.getElement());
 
-    this.fileUpload = new FileUpload((file: File) => this.handleFileSelect(file));
+    this.fileUpload = new FileUpload((file: File) =>
+      this.handleFileSelect(file),
+    );
     const fileContainer = this.inputSection.getFileContainer();
     fileContainer.appendChild(this.fileUpload.getElement());
   }
 
   private setupHashCards(): void {
-    const grid = document.querySelector('.hash-grid') as HTMLElement;
-    const algorithms: HashAlgorithm[] = ['md5', 'sha1', 'sha256', 'sha512', 'sha3-256', 'sha3-512'];
+    const grid = document.querySelector(".hash-grid") as HTMLElement;
+    const algorithms: HashAlgorithm[] = [
+      "md5",
+      "sha1",
+      "sha256",
+      "sha512",
+      "sha3-256",
+      "sha3-512",
+    ];
 
-    algorithms.forEach(algorithm => {
+    algorithms.forEach((algorithm) => {
       const card = new HashCard(algorithm);
       this.hashCards.set(algorithm, card);
       grid.appendChild(card.getElement());
@@ -118,13 +131,13 @@ class HashGeneratorApp {
   }
 
   private setupKeyboardShortcuts(): void {
-    document.addEventListener('keydown', (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+    document.addEventListener("keydown", (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "k") {
         event.preventDefault();
         this.inputSection.focus();
       }
-      
-      if ((event.ctrlKey || event.metaKey) && event.key === 'l') {
+
+      if ((event.ctrlKey || event.metaKey) && event.key === "l") {
         event.preventDefault();
         this.handleClearAll();
       }
@@ -132,7 +145,7 @@ class HashGeneratorApp {
   }
 
   private handleInputChange(value: string): void {
-    if (this.currentMode !== 'text') return;
+    if (this.currentMode !== "text") return;
 
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
@@ -147,26 +160,26 @@ class HashGeneratorApp {
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
     }
-    this.updateAllHashes('');
+    this.updateAllHashes("");
   }
 
-  private handleModeChange(mode: 'text' | 'file'): void {
+  private handleModeChange(mode: "text" | "file"): void {
     this.currentMode = mode;
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
     }
-    this.updateAllHashes('');
+    this.updateAllHashes("");
   }
 
   private async handleFileSelect(file: File): Promise<void> {
-    if (this.currentMode !== 'file') return;
+    if (this.currentMode !== "file") return;
 
     try {
       const fileContent = await this.readFileAsArrayBuffer(file);
       await this.updateAllHashesFromFile(fileContent);
     } catch (error) {
-      console.error('Error reading file:', error);
-      this.showErrorMessage('Error reading file. Please try again.');
+      console.error("Error reading file:", error);
+      this.showErrorMessage("Error reading file. Please try again.");
     }
   }
 
@@ -180,36 +193,38 @@ class HashGeneratorApp {
   }
 
   private async updateAllHashes(input: string): Promise<void> {
-    if (this.currentMode !== 'text') return;
+    if (this.currentMode !== "text") return;
 
-    const promises = Array.from(this.hashCards.values()).map(card => 
-      card.updateHash(input)
+    const promises = Array.from(this.hashCards.values()).map((card) =>
+      card.updateHash(input),
     );
 
     try {
       await Promise.all(promises);
     } catch (error) {
-      console.error('Error updating hashes:', error);
+      console.error("Error updating hashes:", error);
     }
   }
 
-  private async updateAllHashesFromFile(fileContent: ArrayBuffer): Promise<void> {
-    if (this.currentMode !== 'file') return;
+  private async updateAllHashesFromFile(
+    fileContent: ArrayBuffer,
+  ): Promise<void> {
+    if (this.currentMode !== "file") return;
 
-    const promises = Array.from(this.hashCards.values()).map(card => 
-      card.updateHashFromFile(fileContent)
+    const promises = Array.from(this.hashCards.values()).map((card) =>
+      card.updateHashFromFile(fileContent),
     );
 
     try {
       await Promise.all(promises);
     } catch (error) {
-      console.error('Error updating hashes from file:', error);
+      console.error("Error updating hashes from file:", error);
     }
   }
 
   private showErrorMessage(message: string): void {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-toast';
+    const errorDiv = document.createElement("div");
+    errorDiv.className = "error-toast";
     errorDiv.textContent = message;
     document.body.appendChild(errorDiv);
 
@@ -219,6 +234,6 @@ class HashGeneratorApp {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   new HashGeneratorApp();
 });

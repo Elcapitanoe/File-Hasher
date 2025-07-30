@@ -9,8 +9,8 @@ export class FileUpload {
   }
 
   private createElement(): HTMLElement {
-    const container = document.createElement('div');
-    container.className = 'file-upload-section';
+    const container = document.createElement("div");
+    container.className = "file-upload-section";
     container.innerHTML = `
       <div class="file-upload-header">
         <h3>Upload File to Hash</h3>
@@ -61,47 +61,49 @@ export class FileUpload {
   }
 
   private setupEventListeners(container: HTMLElement): void {
-    const fileInput = container.querySelector('#fileInput') as HTMLInputElement;
-    const dropArea = container.querySelector('#fileDropArea') as HTMLElement;
-    const removeBtn = container.querySelector('.remove-file-btn') as HTMLButtonElement;
+    const fileInput = container.querySelector("#fileInput") as HTMLInputElement;
+    const dropArea = container.querySelector("#fileDropArea") as HTMLElement;
+    const removeBtn = container.querySelector(
+      ".remove-file-btn",
+    ) as HTMLButtonElement;
 
-    fileInput.addEventListener('change', (e) => {
+    fileInput.addEventListener("change", (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
         this.handleFileSelect(file);
       }
     });
 
-    dropArea.addEventListener('dragover', (e) => {
+    dropArea.addEventListener("dragover", (e) => {
       e.preventDefault();
-      dropArea.classList.add('drag-over');
+      dropArea.classList.add("drag-over");
     });
 
-    dropArea.addEventListener('dragleave', (e) => {
+    dropArea.addEventListener("dragleave", (e) => {
       e.preventDefault();
       if (!dropArea.contains(e.relatedTarget as Node)) {
-        dropArea.classList.remove('drag-over');
+        dropArea.classList.remove("drag-over");
       }
     });
 
-    dropArea.addEventListener('drop', (e) => {
+    dropArea.addEventListener("drop", (e) => {
       e.preventDefault();
-      dropArea.classList.remove('drag-over');
-      
+      dropArea.classList.remove("drag-over");
+
       const files = e.dataTransfer?.files;
       if (files && files.length > 0) {
         this.handleFileSelect(files[0]);
       }
     });
 
-    dropArea.addEventListener('click', (e) => {
+    dropArea.addEventListener("click", (e) => {
       if (e.target === removeBtn || removeBtn.contains(e.target as Node)) {
         return;
       }
       fileInput.click();
     });
 
-    removeBtn.addEventListener('click', (e) => {
+    removeBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       this.clearFile();
     });
@@ -110,7 +112,9 @@ export class FileUpload {
   private handleFileSelect(file: File): void {
     const maxSize = 100 * 1024 * 1024;
     if (file.size > maxSize) {
-      this.showError('File size exceeds 100MB limit. Please select a smaller file.');
+      this.showError(
+        "File size exceeds 100MB limit. Please select a smaller file.",
+      );
       return;
     }
 
@@ -120,40 +124,50 @@ export class FileUpload {
   }
 
   private showFileInfo(file: File): void {
-    const uploadContent = this.element.querySelector('.file-upload-content') as HTMLElement;
-    const selectedInfo = this.element.querySelector('.file-selected-info') as HTMLElement;
-    const fileName = this.element.querySelector('.file-name') as HTMLElement;
-    const fileSize = this.element.querySelector('.file-size') as HTMLElement;
+    const uploadContent = this.element.querySelector(
+      ".file-upload-content",
+    ) as HTMLElement;
+    const selectedInfo = this.element.querySelector(
+      ".file-selected-info",
+    ) as HTMLElement;
+    const fileName = this.element.querySelector(".file-name") as HTMLElement;
+    const fileSize = this.element.querySelector(".file-size") as HTMLElement;
 
-    uploadContent.style.display = 'none';
-    selectedInfo.style.display = 'flex';
+    uploadContent.style.display = "none";
+    selectedInfo.style.display = "flex";
 
     fileName.textContent = file.name;
     fileSize.textContent = this.formatFileSize(file.size);
   }
 
   private clearFile(): void {
-    const uploadContent = this.element.querySelector('.file-upload-content') as HTMLElement;
-    const selectedInfo = this.element.querySelector('.file-selected-info') as HTMLElement;
-    const fileInput = this.element.querySelector('#fileInput') as HTMLInputElement;
+    const uploadContent = this.element.querySelector(
+      ".file-upload-content",
+    ) as HTMLElement;
+    const selectedInfo = this.element.querySelector(
+      ".file-selected-info",
+    ) as HTMLElement;
+    const fileInput = this.element.querySelector(
+      "#fileInput",
+    ) as HTMLInputElement;
 
-    uploadContent.style.display = 'flex';
-    selectedInfo.style.display = 'none';
-    fileInput.value = '';
+    uploadContent.style.display = "flex";
+    selectedInfo.style.display = "none";
+    fileInput.value = "";
     this.selectedFile = null;
   }
 
   private formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   }
 
   private showError(message: string): void {
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-toast';
+    const errorDiv = document.createElement("div");
+    errorDiv.className = "error-toast";
     errorDiv.textContent = message;
     document.body.appendChild(errorDiv);
 

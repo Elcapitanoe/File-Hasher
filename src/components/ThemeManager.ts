@@ -1,12 +1,12 @@
-export type ThemeMode = 'auto' | 'light' | 'dark';
+export type ThemeMode = "auto" | "light" | "dark";
 
 export class ThemeManager {
   private element: HTMLElement;
-  private currentTheme: ThemeMode = 'auto';
+  private currentTheme: ThemeMode = "auto";
   private mediaQuery: MediaQueryList;
 
   constructor() {
-    this.mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    this.mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     this.element = this.createElement();
     this.loadSavedTheme();
     this.applyTheme();
@@ -14,8 +14,8 @@ export class ThemeManager {
   }
 
   private createElement(): HTMLElement {
-    const container = document.createElement('div');
-    container.className = 'theme-selector';
+    const container = document.createElement("div");
+    container.className = "theme-selector";
     container.innerHTML = `
       <div class="theme-toggle">
         <button class="theme-btn" data-theme="light" title="Light theme">
@@ -44,10 +44,12 @@ export class ThemeManager {
   }
 
   private setupEventListeners(container: HTMLElement): void {
-    const themeButtons = container.querySelectorAll('.theme-btn') as NodeListOf<HTMLButtonElement>;
+    const themeButtons = container.querySelectorAll(
+      ".theme-btn",
+    ) as NodeListOf<HTMLButtonElement>;
 
-    themeButtons.forEach(button => {
-      button.addEventListener('click', () => {
+    themeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
         const theme = button.dataset.theme as ThemeMode;
         this.setTheme(theme);
       });
@@ -55,8 +57,8 @@ export class ThemeManager {
   }
 
   private setupMediaQueryListener(): void {
-    this.mediaQuery.addEventListener('change', () => {
-      if (this.currentTheme === 'auto') {
+    this.mediaQuery.addEventListener("change", () => {
+      if (this.currentTheme === "auto") {
         this.applyTheme();
       }
     });
@@ -71,48 +73,50 @@ export class ThemeManager {
 
   private applyTheme(): void {
     const root = document.documentElement;
-    let actualTheme: 'light' | 'dark';
+    let actualTheme: "light" | "dark";
 
-    if (this.currentTheme === 'auto') {
-      actualTheme = this.mediaQuery.matches ? 'dark' : 'light';
+    if (this.currentTheme === "auto") {
+      actualTheme = this.mediaQuery.matches ? "dark" : "light";
     } else {
       actualTheme = this.currentTheme;
     }
 
-    root.setAttribute('data-theme', actualTheme);
-    
-    if (actualTheme === 'dark') {
-      root.classList.add('dark-theme');
+    root.setAttribute("data-theme", actualTheme);
+
+    if (actualTheme === "dark") {
+      root.classList.add("dark-theme");
     } else {
-      root.classList.remove('dark-theme');
+      root.classList.remove("dark-theme");
     }
   }
 
   private updateButtonStates(): void {
-    const buttons = this.element.querySelectorAll('.theme-btn') as NodeListOf<HTMLButtonElement>;
-    
-    buttons.forEach(button => {
+    const buttons = this.element.querySelectorAll(
+      ".theme-btn",
+    ) as NodeListOf<HTMLButtonElement>;
+
+    buttons.forEach((button) => {
       const isActive = button.dataset.theme === this.currentTheme;
-      button.classList.toggle('active', isActive);
+      button.classList.toggle("active", isActive);
     });
   }
 
   private saveTheme(): void {
     try {
-      localStorage.setItem('theme-preference', this.currentTheme);
+      localStorage.setItem("theme-preference", this.currentTheme);
     } catch (error) {
-      console.warn('Failed to save theme preference:', error);
+      console.warn("Failed to save theme preference:", error);
     }
   }
 
   private loadSavedTheme(): void {
     try {
-      const saved = localStorage.getItem('theme-preference') as ThemeMode;
-      if (saved && ['auto', 'light', 'dark'].includes(saved)) {
+      const saved = localStorage.getItem("theme-preference") as ThemeMode;
+      if (saved && ["auto", "light", "dark"].includes(saved)) {
         this.currentTheme = saved;
       }
     } catch (error) {
-      console.warn('Failed to load theme preference:', error);
+      console.warn("Failed to load theme preference:", error);
     }
     this.updateButtonStates();
   }
