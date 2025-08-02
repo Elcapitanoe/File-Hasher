@@ -220,19 +220,6 @@ export class ThemeManager {
     }
   }
 
-  private setupEventListeners_old(container: HTMLElement): void {
-    const themeButtons = container.querySelectorAll(
-      ".theme-btn",
-    ) as NodeListOf<HTMLButtonElement>;
-
-    themeButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const theme = button.dataset.theme as ThemeMode;
-        this.setTheme(theme);
-      });
-    });
-  }
-
   private setupMediaQueryListener(): void {
     this.mediaQuery.addEventListener("change", () => {
       if (this.currentTheme === "auto") {
