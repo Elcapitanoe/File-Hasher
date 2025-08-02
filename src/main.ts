@@ -4,12 +4,16 @@ import { HashCard } from "./components/HashCard";
 import { InputSection } from "./components/InputSection";
 import { FileUpload } from "./components/FileUpload";
 import { ThemeManager } from "./components/ThemeManager";
+import { AboutPage } from "./pages/AboutPage";
+import { PrivacyPage } from "./pages/PrivacyPage";
 
 class HashGeneratorApp {
   private hashCards: Map<HashAlgorithm, HashCard> = new Map();
   private inputSection!: InputSection;
   private fileUpload!: FileUpload;
   private themeManager!: ThemeManager;
+  private aboutPage!: AboutPage;
+  private privacyPage!: PrivacyPage;
   private debounceTimer: number | null = null;
   private currentMode: "text" | "file" = "text";
 
@@ -37,16 +41,6 @@ class HashGeneratorApp {
             </div>
             <div class="header-controls">
               <div class="theme-selector-container"></div>
-              <div class="header-stats">
-                <div class="stat">
-                  <span class="stat-number">6</span>
-                  <span class="stat-label">Algorithms</span>
-                </div>
-                <div class="stat">
-                  <span class="stat-number">∞</span>
-                  <span class="stat-label">Hashes</span>
-                </div>
-              </div>
             </div>
           </div>
         </header>
@@ -69,8 +63,8 @@ class HashGeneratorApp {
               <p class="footer-note">All hashing is performed locally in your browser for maximum security.</p>
             </div>
             <div class="footer-links">
-              <a href="#" class="footer-link">About</a>
-              <a href="#" class="footer-link">Privacy</a>
+              <a href="#" class="footer-link" id="aboutLink">About</a>
+              <a href="#" class="footer-link" id="privacyLink">Privacy</a>
               <a href="https://github.com/Elcapitanoe/File-Hasher" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
             </div>
           </div>
@@ -79,6 +73,7 @@ class HashGeneratorApp {
     `;
 
     this.setupThemeManager();
+    this.setupPages();
     this.setupInputSection();
     this.setupHashCards();
     this.setupKeyboardShortcuts();
@@ -90,6 +85,24 @@ class HashGeneratorApp {
     ) as HTMLElement;
     this.themeManager = new ThemeManager();
     container.appendChild(this.themeManager.getElement());
+  }
+
+  private setupPages(): void {
+    this.aboutPage = new AboutPage();
+    this.privacyPage = new PrivacyPage();
+
+    const aboutLink = document.querySelector("#aboutLink") as HTMLAnchorElement;
+    const privacyLink = document.querySelector("#privacyLink") as HTMLAnchorElement;
+
+    aboutLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      this.aboutPage.show();
+    });
+
+    privacyLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      this.privacyPage.show();
+    });
   }
 
   private setupInputSection(): void {

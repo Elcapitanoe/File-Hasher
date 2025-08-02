@@ -65,9 +65,7 @@ export class InputSection {
           <span class="character-count">0 characters</span>
           <div class="input-examples">
             <span>Try: </span>
-            <button class="example-btn" data-example="Hello World">Hello World</button>
-            <button class="example-btn" data-example="The quick brown fox jumps over the lazy dog">Lorem text</button>
-            <button class="example-btn" data-example="2025">2025</button>
+            <button class="example-btn" data-example="Jomblo? Nganggur? Yahahaha">Example Text</button>
           </div>
         </div>
       </div>
