@@ -79,6 +79,11 @@ class HashGeneratorApp {
     this.setupHashCards();
     this.setupKeyboardShortcuts();
     this.setupErrorHandling();
+    const path = window.location.pathname;
+    const isValidRoute = ["/", "/index.html"].includes(path);
+    if (!isValidRoute && !path.startsWith("/src/")) {
+      ErrorPage.show404();
+}
   }
 
   private setupThemeManager(): void {
