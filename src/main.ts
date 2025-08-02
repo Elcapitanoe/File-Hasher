@@ -15,7 +15,6 @@ class HashGeneratorApp {
   private themeManager!: ThemeManager;
   private aboutPage!: AboutPage;
   private privacyPage!: PrivacyPage;
-  private errorPage!: ErrorPage;
   private debounceTimer: number | null = null;
   private currentMode: "text" | "file" = "text";
 
