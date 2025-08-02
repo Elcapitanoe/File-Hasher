@@ -6,6 +6,7 @@ import { FileUpload } from "./components/FileUpload";
 import { ThemeManager } from "./components/ThemeManager";
 import { AboutPage } from "./pages/AboutPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
+import { ErrorPage } from "./pages/ErrorPage";
 
 class HashGeneratorApp {
   private hashCards: Map<HashAlgorithm, HashCard> = new Map();
@@ -14,6 +15,7 @@ class HashGeneratorApp {
   private themeManager!: ThemeManager;
   private aboutPage!: AboutPage;
   private privacyPage!: PrivacyPage;
+  private errorPage!: ErrorPage;
   private debounceTimer: number | null = null;
   private currentMode: "text" | "file" = "text";
 
@@ -77,6 +79,7 @@ class HashGeneratorApp {
     this.setupInputSection();
     this.setupHashCards();
     this.setupKeyboardShortcuts();
+    this.setupErrorHandling();
   }
 
   private setupThemeManager(): void {
@@ -90,6 +93,7 @@ class HashGeneratorApp {
   private setupPages(): void {
     this.aboutPage = new AboutPage();
     this.privacyPage = new PrivacyPage();
+    this.errorPage = new ErrorPage(404);
 
     const aboutLink = document.querySelector("#aboutLink") as HTMLAnchorElement;
     const privacyLink = document.querySelector("#privacyLink") as HTMLAnchorElement;
@@ -102,6 +106,34 @@ class HashGeneratorApp {
     privacyLink.addEventListener("click", (e) => {
       e.preventDefault();
       this.privacyPage.show();
+    });
+  }
+
+  private setupErrorHandling(): void {
+    // Handle 404 errors for non-existent routes
+    window.addEventListener('popstate', () => {
+      const path = window.location.pathname;
+      if (path !== '/' && path !== '/index.html' && !path.startsWith('/src/')) {
+        ErrorPage.show404();
+      }
+    });
+
+    // Handle unhandled errors
+    window.addEventListener('error', (event) => {
+      console.error('Unhandled error:', event.error);
+      // Only show error page for critical errors, not minor ones
+      if (event.error && event.error.name === 'ChunkLoadError') {
+        ErrorPage.show500();
+      }
+    });
+
+    // Handle unhandled promise rejections
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('Unhandled promise rejection:', event.reason);
+      // Only show error page for critical promise rejections
+      if (event.reason && event.reason.name === 'NetworkError') {
+        ErrorPage.show500();
+      }
     });
   }
 

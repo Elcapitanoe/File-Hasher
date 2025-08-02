@@ -4,7 +4,6 @@ export class ThemeManager {
   private element: HTMLElement;
   private currentTheme: ThemeMode = "auto";
   private mediaQuery: MediaQueryList;
-  private isExpanded: boolean = false;
 
   constructor() {
     this.mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -18,57 +17,28 @@ export class ThemeManager {
     const container = document.createElement("div");
     container.className = "theme-selector";
     container.innerHTML = `
-      <div class="theme-toggle" id="themeToggle">
-        <button class="theme-btn active-theme" id="activeThemeBtn" title="Change theme">
-          <svg class="theme-icon light-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="5"></circle>
-            <line x1="12" y1="1" x2="12" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="23"></line>
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-            <line x1="1" y1="12" x2="3" y2="12"></line>
-            <line x1="21" y1="12" x2="23" y2="12"></line>
-            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-          </svg>
-          <svg class="theme-icon dark-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
-          <svg class="theme-icon auto-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-            <line x1="8" y1="21" x2="16" y2="21"></line>
-            <line x1="12" y1="17" x2="12" y2="21"></line>
-          </svg>
-        </button>
-        <div class="theme-options" id="themeOptions">
-          <button class="theme-option-btn" data-theme="light" title="Light theme">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="5"></circle>
-              <line x1="12" y1="1" x2="12" y2="3"></line>
-              <line x1="12" y1="21" x2="12" y2="23"></line>
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-              <line x1="1" y1="12" x2="3" y2="12"></line>
-              <line x1="21" y1="12" x2="23" y2="12"></line>
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-            </svg>
-            <span>Light</span>
-          </button>
-          <button class="theme-option-btn" data-theme="auto" title="Auto theme">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-              <line x1="8" y1="21" x2="16" y2="21"></line>
-              <line x1="12" y1="17" x2="12" y2="21"></line>
-            </svg>
-            <span>Auto</span>
-          </button>
-          <button class="theme-option-btn" data-theme="dark" title="Dark theme">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>
-            <span>Dark</span>
-          </button>
+      <div class="theme-slider-container" id="themeSlider">
+        <div class="theme-slider-track">
+          <div class="theme-slider-indicator" id="sliderIndicator"></div>
+          
+<button class="theme-option" data-theme="light" title="Light theme">
+<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" class="text-darkmode" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0a.996.996 0 000-1.41l-1.06-1.06zm1.06-10.96a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 000-1.41.996.996 0 00-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"></path></svg>
+</button>
+
+<button class="theme-option" data-theme="auto" title="Auto theme">
+  <svg xmlns="http://www.w3.org/2000/svg"
+       width="24" height="24"
+       viewBox="0 0 24 24"
+       fill="currentColor">
+    <text x="12" y="16" text-anchor="middle" font-size="14" font-family="sans-serif">A</text>
+  </svg>
+</button>
+
+<button class="theme-option" data-theme="dark" title="Dark theme">
+<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" class="text-darkmode" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M9.37 5.51A7.35 7.35 0 009.1 7.5c0 4.08 3.32 7.4 7.4 7.4.68 0 1.35-.09 1.99-.27A7.014 7.014 0 0112 19c-3.86 0-7-3.14-7-7 0-2.93 1.81-5.45 4.37-6.49zM12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"></path></svg>
+</button>
+
+          
         </div>
       </div>
     `;
@@ -78,145 +48,24 @@ export class ThemeManager {
   }
 
   private setupEventListeners(container: HTMLElement): void {
-    const themeToggle = container.querySelector("#themeToggle") as HTMLElement;
-    const activeThemeBtn = container.querySelector("#activeThemeBtn") as HTMLButtonElement;
-    const themeOptionButtons = container.querySelectorAll(
-      ".theme-option-btn",
+    const themeOptions = container.querySelectorAll(
+      ".theme-option",
     ) as NodeListOf<HTMLButtonElement>;
 
-    // Handle active theme button click (mobile)
-    activeThemeBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      this.toggleExpanded();
-    });
-
-    // Handle hover for desktop
-    themeToggle.addEventListener("mouseenter", () => {
-      if (window.innerWidth > 768) {
-        this.expand();
-      }
-    });
-
-    themeToggle.addEventListener("mouseleave", () => {
-      if (window.innerWidth > 768) {
-        this.collapse();
-      }
-    });
-
-    // Handle theme option selection
-    themeOptionButtons.forEach((button) => {
+    themeOptions.forEach((button) => {
       button.addEventListener("click", (e) => {
         e.stopPropagation();
         const theme = button.dataset.theme as ThemeMode;
         this.setTheme(theme);
-        this.collapse();
       });
     });
-
-    // Close on outside click
-    document.addEventListener("click", (e) => {
-      if (!themeToggle.contains(e.target as Node)) {
-        this.collapse();
-      }
-    });
   }
 
-  private toggleExpanded(): void {
-    if (this.isExpanded) {
-      this.collapse();
-    } else {
-      this.expand();
-    }
-  }
-
-  private expand(): void {
-    if (this.isExpanded) return;
-    
-    this.isExpanded = true;
-    const themeToggle = this.element.querySelector("#themeToggle") as HTMLElement;
-    const themeOptions = this.element.querySelector("#themeOptions") as HTMLElement;
-    
-    themeToggle.classList.add("expanded");
-    themeOptions.style.display = "flex";
-    
-    // Calculate and set proper width based on content
-    const optionButtons = themeOptions.querySelectorAll('.theme-option-btn');
-    let maxWidth = 0;
-    
-    optionButtons.forEach(button => {
-      const tempSpan = document.createElement('span');
-      tempSpan.style.visibility = 'hidden';
-      tempSpan.style.position = 'absolute';
-      tempSpan.style.whiteSpace = 'nowrap';
-      tempSpan.style.fontSize = '0.875rem';
-      tempSpan.style.fontWeight = '500';
-      tempSpan.textContent = button.textContent || '';
-      document.body.appendChild(tempSpan);
-      
-      const textWidth = tempSpan.offsetWidth;
-      document.body.removeChild(tempSpan);
-      
-      // Add padding and icon space (16px icon + 8px gap + 32px padding)
-      const totalWidth = textWidth + 56;
-      maxWidth = Math.max(maxWidth, totalWidth);
-    });
-    
-    // Ensure minimum width and apply
-    const finalWidth = Math.max(maxWidth, 140);
-    themeToggle.style.width = `${finalWidth}px`;
-    themeOptions.style.width = `${finalWidth}px`;
-    
-    // Trigger animation
-    requestAnimationFrame(() => {
-      themeOptions.classList.add("visible");
-    });
-  }
-
-  private collapse(): void {
-    if (!this.isExpanded) return;
-    
-    this.isExpanded = false;
-    const themeToggle = this.element.querySelector("#themeToggle") as HTMLElement;
-    const themeOptions = this.element.querySelector("#themeOptions") as HTMLElement;
-    
-    themeToggle.classList.remove("expanded");
-    themeOptions.classList.remove("visible");
-    
-    // Reset width to auto for collapsed state
-    themeToggle.style.width = '';
-    themeOptions.style.width = '';
-    
-    // Hide after animation
-    setTimeout(() => {
-      if (!this.isExpanded) {
-        themeOptions.style.display = "none";
-      }
-    }, 200);
-  }
-
-  private updateActiveThemeIcon(): void {
-    const activeThemeBtn = this.element.querySelector("#activeThemeBtn") as HTMLButtonElement;
-    const lightIcon = activeThemeBtn.querySelector(".light-icon") as SVGElement;
-    const darkIcon = activeThemeBtn.querySelector(".dark-icon") as SVGElement;
-    const autoIcon = activeThemeBtn.querySelector(".auto-icon") as SVGElement;
-
-    // Hide all icons
-    lightIcon.style.display = "none";
-    darkIcon.style.display = "none";
-    autoIcon.style.display = "none";
-
-    // Show current theme icon
-    switch (this.currentTheme) {
-      case "light":
-        lightIcon.style.display = "block";
-        break;
-      case "dark":
-        darkIcon.style.display = "block";
-        break;
-      case "auto":
-        autoIcon.style.display = "block";
-        break;
-    }
+  private updateSliderPosition(): void {
+    const indicator = this.element.querySelector("#sliderIndicator") as HTMLElement;
+    const themeIndex = this.currentTheme === "light" ? 0 : this.currentTheme === "auto" ? 1 : 2;
+    const translateX = themeIndex * 100;
+    indicator.style.transform = `translateX(${translateX}%)`;
   }
 
   private setupMediaQueryListener(): void {
@@ -231,8 +80,7 @@ export class ThemeManager {
     this.currentTheme = theme;
     this.saveTheme();
     this.applyTheme();
-    this.updateButtonStates();
-    this.updateActiveThemeIcon();
+    this.updateSliderPosition();
   }
 
   private applyTheme(): void {
@@ -254,17 +102,6 @@ export class ThemeManager {
     }
   }
 
-  private updateButtonStates(): void {
-    const buttons = this.element.querySelectorAll(
-      ".theme-option-btn",
-    ) as NodeListOf<HTMLButtonElement>;
-
-    buttons.forEach((button) => {
-      const isActive = button.dataset.theme === this.currentTheme;
-      button.classList.toggle("active", isActive);
-    });
-  }
-
   private saveTheme(): void {
     try {
       localStorage.setItem("theme-preference", this.currentTheme);
@@ -282,8 +119,7 @@ export class ThemeManager {
     } catch (error) {
       console.warn("Failed to load theme preference:", error);
     }
-    this.updateButtonStates();
-    this.updateActiveThemeIcon();
+    this.updateSliderPosition();
   }
 
   getElement(): HTMLElement {

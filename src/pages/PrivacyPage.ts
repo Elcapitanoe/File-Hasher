@@ -29,7 +29,7 @@ export class PrivacyPage {
             </div>
             <h1>Privacy Policy</h1>
             <p class="hero-subtitle">Your privacy is our priority</p>
-            <p class="last-updated">Last updated: January 2025</p>
+            <p class="last-updated">Last updated: August 2025</p>
           </div>
 
           <div class="content-sections">
