@@ -80,7 +80,6 @@ export class ThemeManager {
   private setupEventListeners(container: HTMLElement): void {
     const themeToggle = container.querySelector("#themeToggle") as HTMLElement;
     const activeThemeBtn = container.querySelector("#activeThemeBtn") as HTMLButtonElement;
-    const themeOptions = container.querySelector("#themeOptions") as HTMLElement;
     const themeOptionButtons = container.querySelectorAll(
       ".theme-option-btn",
     ) as NodeListOf<HTMLButtonElement>;
