@@ -92,9 +92,7 @@ class HashGeneratorApp {
     this.privacyPage = new PrivacyPage();
 
     const aboutLink = document.querySelector("#aboutLink") as HTMLAnchorElement;
-    const privacyLink = document.querySelector(
-      "#privacyLink",
-    ) as HTMLAnchorElement;
+    const privacyLink = document.querySelector("#privacyLink") as HTMLAnchorElement;
 
     aboutLink.addEventListener("click", (e) => {
       e.preventDefault();

@@ -79,12 +79,8 @@ export class ThemeManager {
 
   private setupEventListeners(container: HTMLElement): void {
     const themeToggle = container.querySelector("#themeToggle") as HTMLElement;
-    const activeThemeBtn = container.querySelector(
-      "#activeThemeBtn",
-    ) as HTMLButtonElement;
-    const themeOptions = container.querySelector(
-      "#themeOptions",
-    ) as HTMLElement;
+    const activeThemeBtn = container.querySelector("#activeThemeBtn") as HTMLButtonElement;
+    const themeOptions = container.querySelector("#themeOptions") as HTMLElement;
     const themeOptionButtons = container.querySelectorAll(
       ".theme-option-btn",
     ) as NodeListOf<HTMLButtonElement>;
@@ -136,45 +132,41 @@ export class ThemeManager {
 
   private expand(): void {
     if (this.isExpanded) return;
-
+    
     this.isExpanded = true;
-    const themeToggle = this.element.querySelector(
-      "#themeToggle",
-    ) as HTMLElement;
-    const themeOptions = this.element.querySelector(
-      "#themeOptions",
-    ) as HTMLElement;
-
+    const themeToggle = this.element.querySelector("#themeToggle") as HTMLElement;
+    const themeOptions = this.element.querySelector("#themeOptions") as HTMLElement;
+    
     themeToggle.classList.add("expanded");
     themeOptions.style.display = "flex";
-
+    
     // Calculate and set proper width based on content
-    const optionButtons = themeOptions.querySelectorAll(".theme-option-btn");
+    const optionButtons = themeOptions.querySelectorAll('.theme-option-btn');
     let maxWidth = 0;
-
-    optionButtons.forEach((button) => {
-      const tempSpan = document.createElement("span");
-      tempSpan.style.visibility = "hidden";
-      tempSpan.style.position = "absolute";
-      tempSpan.style.whiteSpace = "nowrap";
-      tempSpan.style.fontSize = "0.875rem";
-      tempSpan.style.fontWeight = "500";
-      tempSpan.textContent = button.textContent || "";
+    
+    optionButtons.forEach(button => {
+      const tempSpan = document.createElement('span');
+      tempSpan.style.visibility = 'hidden';
+      tempSpan.style.position = 'absolute';
+      tempSpan.style.whiteSpace = 'nowrap';
+      tempSpan.style.fontSize = '0.875rem';
+      tempSpan.style.fontWeight = '500';
+      tempSpan.textContent = button.textContent || '';
       document.body.appendChild(tempSpan);
-
+      
       const textWidth = tempSpan.offsetWidth;
       document.body.removeChild(tempSpan);
-
+      
       // Add padding and icon space (16px icon + 8px gap + 32px padding)
       const totalWidth = textWidth + 56;
       maxWidth = Math.max(maxWidth, totalWidth);
     });
-
+    
     // Ensure minimum width and apply
     const finalWidth = Math.max(maxWidth, 140);
     themeToggle.style.width = `${finalWidth}px`;
     themeOptions.style.width = `${finalWidth}px`;
-
+    
     // Trigger animation
     requestAnimationFrame(() => {
       themeOptions.classList.add("visible");
@@ -183,22 +175,18 @@ export class ThemeManager {
 
   private collapse(): void {
     if (!this.isExpanded) return;
-
+    
     this.isExpanded = false;
-    const themeToggle = this.element.querySelector(
-      "#themeToggle",
-    ) as HTMLElement;
-    const themeOptions = this.element.querySelector(
-      "#themeOptions",
-    ) as HTMLElement;
-
+    const themeToggle = this.element.querySelector("#themeToggle") as HTMLElement;
+    const themeOptions = this.element.querySelector("#themeOptions") as HTMLElement;
+    
     themeToggle.classList.remove("expanded");
     themeOptions.classList.remove("visible");
-
+    
     // Reset width to auto for collapsed state
-    themeToggle.style.width = "";
-    themeOptions.style.width = "";
-
+    themeToggle.style.width = '';
+    themeOptions.style.width = '';
+    
     // Hide after animation
     setTimeout(() => {
       if (!this.isExpanded) {
@@ -208,9 +196,7 @@ export class ThemeManager {
   }
 
   private updateActiveThemeIcon(): void {
-    const activeThemeBtn = this.element.querySelector(
-      "#activeThemeBtn",
-    ) as HTMLButtonElement;
+    const activeThemeBtn = this.element.querySelector("#activeThemeBtn") as HTMLButtonElement;
     const lightIcon = activeThemeBtn.querySelector(".light-icon") as SVGElement;
     const darkIcon = activeThemeBtn.querySelector(".dark-icon") as SVGElement;
     const autoIcon = activeThemeBtn.querySelector(".auto-icon") as SVGElement;
