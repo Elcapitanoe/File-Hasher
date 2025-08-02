@@ -1,8 +1,8 @@
 export class ErrorPage {
   private element: HTMLElement;
   private errorCode: number;
-  private errorTitle: string;
-  private errorMessage: string;
+  private errorTitle!: string;
+  private errorMessage!: string;
 
   constructor(errorCode: number = 404) {
     this.errorCode = errorCode;
