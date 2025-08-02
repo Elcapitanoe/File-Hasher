@@ -93,7 +93,6 @@ class HashGeneratorApp {
   private setupPages(): void {
     this.aboutPage = new AboutPage();
     this.privacyPage = new PrivacyPage();
-    this.errorPage = new ErrorPage(404);
 
     const aboutLink = document.querySelector("#aboutLink") as HTMLAnchorElement;
     const privacyLink = document.querySelector("#privacyLink") as HTMLAnchorElement;
