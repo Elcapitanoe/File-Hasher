@@ -1492,3 +1492,9 @@ textarea:focus-visible {
     --gray-900: #000000;
   }
 }
+
+.theme-option svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: block; 
+}
