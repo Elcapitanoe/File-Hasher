@@ -1,180 +1,99 @@
-import { HashGenerator, type HashAlgorithm } from "../hashGenerator";
+import { type HashAlgorithm, HashGenerator } from "../hashGenerator";
+import { Icons } from "./Icons";
 
 export class HashCard {
-  private element: HTMLElement;
+  private container: HTMLDivElement;
+  private hashValueEl!: HTMLDivElement;
+  private copyBtn!: HTMLButtonElement;
+  private currentHash: string = "";
   private algorithm: HashAlgorithm;
 
   constructor(algorithm: HashAlgorithm) {
     this.algorithm = algorithm;
-    this.element = this.createElement();
+    this.container = document.createElement("div");
+    this.container.className = "hash-card";
+    this.render();
+    this.setupListeners();
   }
 
-  private createElement(): HTMLElement {
+  private render() {
     const info = HashGenerator.getAlgorithmInfo(this.algorithm);
-
-    const card = document.createElement("div");
-    card.className = "hash-card";
-    card.innerHTML = `
-      <div class="hash-card-header">
-        <h3 class="hash-algorithm-name">${info.name}</h3>
-        <div class="hash-info">
-          <span class="hash-output-length">${info.outputLength}</span>
-        </div>
+    
+    this.container.innerHTML = `
+      <div class="hash-header">
+        <h3 class="hash-name">${info.name}</h3>
+        <span class="hash-length">${info.outputLength}</span>
       </div>
-      <div class="hash-description">${info.description}</div>
-      <div class="hash-result-container">
-        <div class="hash-result" data-algorithm="${this.algorithm}">
-          <span class="hash-placeholder">Hash will appear here...</span>
-        </div>
-        <button class="copy-button" title="Copy to clipboard">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
+      <div class="hash-value-container">
+        <div class="hash-value empty" title="Waiting for input...">Waiting for input...</div>
+        <button class="icon-btn btn-copy" title="Copy to clipboard" disabled>
+          ${Icons.copy}
         </button>
-      </div>
-      <div class="hash-loading">
-        <div class="loading-spinner"></div>
-        <span>Generating hash...</span>
       </div>
     `;
 
-    this.setupEventListeners(card);
-    return card;
+    this.hashValueEl = this.container.querySelector(".hash-value")!;
+    this.copyBtn = this.container.querySelector(".btn-copy")!;
   }
 
-  private setupEventListeners(card: HTMLElement): void {
-    const copyButton = card.querySelector(".copy-button") as HTMLButtonElement;
-    const resultElement = card.querySelector(".hash-result") as HTMLElement;
-
-    copyButton.addEventListener("click", async () => {
-      const hashText = resultElement.textContent;
-      if (
-        hashText &&
-        hashText !== "Hash will appear here..." &&
-        !hashText.startsWith("Error:")
-      ) {
-        try {
-          await navigator.clipboard.writeText(hashText);
-          this.showCopyFeedback(copyButton);
-        } catch (error) {
-          console.error("Failed to copy:", error);
-          this.fallbackCopyToClipboard(hashText);
-        }
-      }
+  private setupListeners() {
+    this.copyBtn.addEventListener("click", () => {
+      if (!this.currentHash) return;
+      
+      navigator.clipboard.writeText(this.currentHash).then(() => {
+        this.copyBtn.innerHTML = Icons.check;
+        this.copyBtn.classList.add("success");
+        
+        setTimeout(() => {
+          this.copyBtn.innerHTML = Icons.copy;
+          this.copyBtn.classList.remove("success");
+        }, 2000);
+      });
     });
   }
 
-  private fallbackCopyToClipboard(text: string): void {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    textArea.style.position = "fixed";
-    textArea.style.left = "-999999px";
-    textArea.style.top = "-999999px";
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
+  public getElement(): HTMLElement {
+    return this.container;
+  }
 
-    try {
-      document.execCommand("copy");
-      const copyButton = this.element.querySelector(
-        ".copy-button",
-      ) as HTMLButtonElement;
-      this.showCopyFeedback(copyButton);
-    } catch (error) {
-      console.error("Fallback copy failed:", error);
-    } finally {
-      document.body.removeChild(textArea);
+  public setLoading(loading: boolean) {
+    if (loading) {
+      this.hashValueEl.className = "hash-value skeleton skeleton-text";
+      this.hashValueEl.textContent = "";
+      this.hashValueEl.title = "Computing...";
+      this.copyBtn.disabled = true;
     }
   }
 
-  private showCopyFeedback(button: HTMLButtonElement): void {
-    const originalHTML = button.innerHTML;
-    button.innerHTML = `
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="20,6 9,17 4,12"></polyline>
-      </svg>
-    `;
-    button.classList.add("copied");
-
-    setTimeout(() => {
-      button.innerHTML = originalHTML;
-      button.classList.remove("copied");
-    }, 2000);
+  public setHash(hash: string) {
+    this.currentHash = hash;
+    
+    this.hashValueEl.className = "hash-value";
+    
+    if (hash) {
+      this.hashValueEl.textContent = hash;
+      this.hashValueEl.title = hash;
+      this.copyBtn.disabled = false;
+    } else {
+      this.hashValueEl.classList.add("empty");
+      this.hashValueEl.textContent = "Waiting for input...";
+      this.hashValueEl.title = "Waiting for input...";
+      this.copyBtn.disabled = true;
+    }
   }
 
-  async updateHash(input: string): Promise<void> {
-    const resultElement = this.element.querySelector(
-      ".hash-result",
-    ) as HTMLElement;
-    const loadingElement = this.element.querySelector(
-      ".hash-loading",
-    ) as HTMLElement;
-    const copyButton = this.element.querySelector(
-      ".copy-button",
-    ) as HTMLButtonElement;
-
-    if (!input.trim()) {
-      resultElement.innerHTML =
-        '<span class="hash-placeholder">Hash will appear here...</span>';
-      copyButton.disabled = true;
+  public async updateHash(input: string): Promise<void> {
+    if (!input) {
+      this.setHash("");
       return;
     }
-
-    loadingElement.style.display = "flex";
-    copyButton.disabled = true;
-
+    
+    this.setLoading(true);
     try {
       const hash = await HashGenerator.generateHash(this.algorithm, input);
-      resultElement.textContent = hash;
-      copyButton.disabled = false;
-    } catch (error) {
-      resultElement.innerHTML = `<span class="hash-error">Error: ${error}</span>`;
-    } finally {
-      loadingElement.style.display = "none";
+      this.setHash(hash);
+    } catch (e) {
+      this.setHash("Error computing hash");
     }
-  }
-
-  async updateHashFromFile(fileContent: ArrayBuffer): Promise<void> {
-    const resultElement = this.element.querySelector(
-      ".hash-result",
-    ) as HTMLElement;
-    const loadingElement = this.element.querySelector(
-      ".hash-loading",
-    ) as HTMLElement;
-    const copyButton = this.element.querySelector(
-      ".copy-button",
-    ) as HTMLButtonElement;
-
-    if (!fileContent || fileContent.byteLength === 0) {
-      resultElement.innerHTML =
-        '<span class="hash-placeholder">Hash will appear here...</span>';
-      copyButton.disabled = true;
-      return;
-    }
-
-    loadingElement.style.display = "flex";
-    copyButton.disabled = true;
-
-    try {
-      const hash = await HashGenerator.generateHashFromFile(
-        this.algorithm,
-        fileContent,
-      );
-      resultElement.textContent = hash;
-      copyButton.disabled = false;
-    } catch (error) {
-      resultElement.innerHTML = `<span class="hash-error">Error: ${error}</span>`;
-    } finally {
-      loadingElement.style.display = "none";
-    }
-  }
-
-  getElement(): HTMLElement {
-    return this.element;
-  }
-
-  getAlgorithm(): HashAlgorithm {
-    return this.algorithm;
   }
 }

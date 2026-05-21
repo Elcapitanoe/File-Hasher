@@ -1,20 +1,17 @@
 import "./style.css";
-import { type HashAlgorithm } from "./hashGenerator";
+import { type HashAlgorithm, HashGenerator } from "./hashGenerator";
 import { HashCard } from "./components/HashCard";
 import { InputSection } from "./components/InputSection";
 import { FileUpload } from "./components/FileUpload";
 import { ThemeManager } from "./components/ThemeManager";
-import { AboutPage } from "./pages/AboutPage";
-import { PrivacyPage } from "./pages/PrivacyPage";
-import { ErrorPage } from "./pages/ErrorPage";
+import { Icons } from "./components/Icons";
 
 class HashGeneratorApp {
   private hashCards: Map<HashAlgorithm, HashCard> = new Map();
   private inputSection!: InputSection;
   private fileUpload!: FileUpload;
   private themeManager!: ThemeManager;
-  private aboutPage!: AboutPage;
-  private privacyPage!: PrivacyPage;
+  
   private debounceTimer: number | null = null;
   private currentMode: "text" | "file" = "text";
 
@@ -23,158 +20,68 @@ class HashGeneratorApp {
   }
 
   private initializeApp(): void {
-    document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-      <div class="app-container">
+    const appEl = document.querySelector<HTMLDivElement>("#app");
+    if (!appEl) return;
+
+    appEl.innerHTML = `
+      <div class="app-layout">
         <header class="app-header">
-          <div class="header-content">
-            <div class="logo-section">
-              <div class="logo-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                  <path d="M2 17l10 5 10-5"></path>
-                  <path d="M2 12l10 5 10-5"></path>
-                </svg>
-              </div>
-              <div class="logo-text">
-                <h1>File Hasher</h1>
-                <p>Simple Hash Generator</p>
-              </div>
-            </div>
-            <div class="header-controls">
-              <div class="theme-selector-container"></div>
-            </div>
+          <div class="brand">
+            <div class="brand-icon">${Icons.shield}</div>
+            <h1 class="brand-title">File Hasher</h1>
           </div>
+          <div id="theme-controls"></div>
         </header>
 
-        <main class="app-main">
-          <div class="input-section-container"></div>
-          <div class="hash-grid-container">
-            <div class="section-header">
-              <h2>Hash Results</h2>
-              <p>Generate secure hashes using industry-standard algorithms</p>
-            </div>
-            <div class="hash-grid"></div>
-          </div>
+        <main class="main-content">
+          <section id="input-mount"></section>
+          
+          <section class="hash-results">
+            <h2 class="hash-results-title">Computed Hashes</h2>
+            <div class="hash-grid" id="hash-grid"></div>
+          </section>
         </main>
 
         <footer class="app-footer">
-          <div class="footer-content">
-            <div class="footer-info">
-              <p>&copy; 2025 File Hasher by <a href="https://github.com/Elcapitanoe" target="_blank" rel="noopener noreferrer" class="author-link">Elcapitanoe</a></p>
-              <p class="footer-note">All hashing is performed locally in your browser for maximum security.</p>
-            </div>
-            <div class="footer-links">
-              <a href="#" class="footer-link" id="aboutLink">About</a>
-              <a href="#" class="footer-link" id="privacyLink">Privacy</a>
-              <a href="https://github.com/Elcapitanoe/File-Hasher" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
-            </div>
+          <div>Built for speed and privacy. All operations are local.</div>
+          <div class="footer-links">
+            <a href="https://github.com/Elcapitanoe/File-Hasher" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
           </div>
         </footer>
       </div>
     `;
 
-    this.setupThemeManager();
-    this.setupPages();
-    this.setupInputSection();
-    this.setupHashCards();
+    this.mountComponents();
     this.setupKeyboardShortcuts();
-    this.setupErrorHandling();
-    const path = window.location.pathname;
-    const isValidRoute = ["/", "/index.html"].includes(path);
-    if (!isValidRoute && !path.startsWith("/src/")) {
-      ErrorPage.show404();
-}
   }
 
-  private setupThemeManager(): void {
-    const container = document.querySelector(
-      ".theme-selector-container",
-    ) as HTMLElement;
+  private mountComponents(): void {
+    // Theme Manager
     this.themeManager = new ThemeManager();
-    container.appendChild(this.themeManager.getElement());
-  }
+    document.getElementById("theme-controls")?.appendChild(this.themeManager.getElement());
 
-  private setupPages(): void {
-    this.aboutPage = new AboutPage();
-    this.privacyPage = new PrivacyPage();
-
-    const aboutLink = document.querySelector("#aboutLink") as HTMLAnchorElement;
-    const privacyLink = document.querySelector("#privacyLink") as HTMLAnchorElement;
-
-    aboutLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      this.aboutPage.show();
-    });
-
-    privacyLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      this.privacyPage.show();
-    });
-  }
-
-  private setupErrorHandling(): void {
-    // Handle 404 errors for non-existent routes
-    window.addEventListener('popstate', () => {
-      const path = window.location.pathname;
-      if (path !== '/' && path !== '/index.html' && !path.startsWith('/src/')) {
-        ErrorPage.show404();
-      }
-    });
-
-    // Handle unhandled errors
-    window.addEventListener('error', (event) => {
-      console.error('Unhandled error:', event.error);
-      // Only show error page for critical errors, not minor ones
-      if (event.error && event.error.name === 'ChunkLoadError') {
-        ErrorPage.show500();
-      }
-    });
-
-    // Handle unhandled promise rejections
-    window.addEventListener('unhandledrejection', (event) => {
-      console.error('Unhandled promise rejection:', event.reason);
-      // Only show error page for critical promise rejections
-      if (event.reason && event.reason.name === 'NetworkError') {
-        ErrorPage.show500();
-      }
-    });
-  }
-
-  private setupInputSection(): void {
-    const container = document.querySelector(
-      ".input-section-container",
-    ) as HTMLElement;
-
+    // Input Section
     this.inputSection = new InputSection(
-      (value: string) => this.handleInputChange(value),
-      () => this.handleClearAll(),
-      (mode: "text" | "file") => this.handleModeChange(mode),
+      (value: string) => this.handleTextInput(value),
+      (mode: "text" | "file") => this.handleModeChange(mode)
     );
+    document.getElementById("input-mount")?.appendChild(this.inputSection.getElement());
 
-    container.appendChild(this.inputSection.getElement());
-
-    this.fileUpload = new FileUpload((file: File) =>
-      this.handleFileSelect(file),
+    // File Upload
+    this.fileUpload = new FileUpload(
+      (file: File) => this.handleFileSelect(file),
+      () => this.handleClearAll()
     );
-    const fileContainer = this.inputSection.getFileContainer();
-    fileContainer.appendChild(this.fileUpload.getElement());
-  }
+    this.inputSection.getFileContainer().appendChild(this.fileUpload.getElement());
 
-  private setupHashCards(): void {
-    const grid = document.querySelector(".hash-grid") as HTMLElement;
-    const algorithms: HashAlgorithm[] = [
-      "md5",
-      "sha1",
-      "sha256",
-      "sha512",
-      "sha3-256",
-      "sha3-512",
-    ];
+    // Hash Cards
+    const grid = document.getElementById("hash-grid");
+    const algorithms: HashAlgorithm[] = ["md5", "sha1", "sha256", "sha512", "sha3-256", "sha3-512"];
 
     algorithms.forEach((algorithm) => {
       const card = new HashCard(algorithm);
       this.hashCards.set(algorithm, card);
-      grid.appendChild(card.getElement());
+      grid?.appendChild(card.getElement());
     });
   }
 
@@ -182,25 +89,32 @@ class HashGeneratorApp {
     document.addEventListener("keydown", (event) => {
       if ((event.ctrlKey || event.metaKey) && event.key === "k") {
         event.preventDefault();
-        this.inputSection.focus();
+        if (this.currentMode === "text") {
+          this.inputSection.focus();
+        }
       }
-
       if ((event.ctrlKey || event.metaKey) && event.key === "l") {
         event.preventDefault();
+        this.inputSection.clearText();
         this.handleClearAll();
       }
     });
   }
 
-  private handleInputChange(value: string): void {
+  private handleTextInput(value: string): void {
     if (this.currentMode !== "text") return;
 
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
     }
 
+    if (!value) {
+      this.handleClearAll();
+      return;
+    }
+
     this.debounceTimer = window.setTimeout(() => {
-      this.updateAllHashes(value);
+      this.hashCards.forEach(card => card.updateHash(value));
     }, 300);
   }
 
@@ -208,76 +122,61 @@ class HashGeneratorApp {
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
     }
-    this.updateAllHashes("");
+    this.hashCards.forEach(card => card.setHash(""));
   }
 
   private handleModeChange(mode: "text" | "file"): void {
     this.currentMode = mode;
-    if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
-    }
-    this.updateAllHashes("");
+    this.handleClearAll();
   }
 
   private async handleFileSelect(file: File): Promise<void> {
     if (this.currentMode !== "file") return;
 
+    this.fileUpload.showProgress();
+    
     try {
-      const fileContent = await this.readFileAsArrayBuffer(file);
-      await this.updateAllHashesFromFile(fileContent);
-    } catch (error) {
-      console.error("Error reading file:", error);
-      this.showErrorMessage("Error reading file. Please try again.");
-    }
-  }
+      const promises = Array.from(this.hashCards.entries()).map(async ([algo, card]) => {
+        card.setLoading(true);
+        // We only attach progress callback to the heaviest/primary hash to avoid UI jitter
+        const onProgress = algo === "sha256" ? (p: number) => this.fileUpload.updateProgress(p) : undefined;
+        
+        try {
+          const hash = await HashGenerator.generateHashFromFile(algo, file, onProgress);
+          card.setHash(hash);
+        } catch (error) {
+          card.setHash("Error computing hash");
+          console.error(error);
+        }
+      });
 
-  private readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as ArrayBuffer);
-      reader.onerror = () => reject(reader.error);
-      reader.readAsArrayBuffer(file);
-    });
-  }
-
-  private async updateAllHashes(input: string): Promise<void> {
-    if (this.currentMode !== "text") return;
-
-    const promises = Array.from(this.hashCards.values()).map((card) =>
-      card.updateHash(input),
-    );
-
-    try {
       await Promise.all(promises);
-    } catch (error) {
-      console.error("Error updating hashes:", error);
+      this.fileUpload.updateProgress(100);
+      setTimeout(() => this.fileUpload.hideProgress(), 1000);
+    } catch (e) {
+      this.showToast("Error processing file", "error");
+      this.fileUpload.hideProgress();
     }
   }
 
-  private async updateAllHashesFromFile(
-    fileContent: ArrayBuffer,
-  ): Promise<void> {
-    if (this.currentMode !== "file") return;
-
-    const promises = Array.from(this.hashCards.values()).map((card) =>
-      card.updateHashFromFile(fileContent),
-    );
-
-    try {
-      await Promise.all(promises);
-    } catch (error) {
-      console.error("Error updating hashes from file:", error);
+  private showToast(message: string, type: "success" | "error" = "success") {
+    let container = document.querySelector(".toast-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.className = "toast-container";
+      document.body.appendChild(container);
     }
-  }
 
-  private showErrorMessage(message: string): void {
-    const errorDiv = document.createElement("div");
-    errorDiv.className = "error-toast";
-    errorDiv.textContent = message;
-    document.body.appendChild(errorDiv);
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.innerHTML = type === "error" ? "⚠️ " + message : Icons.check + " " + message;
+    
+    container.appendChild(toast);
 
     setTimeout(() => {
-      errorDiv.remove();
+      toast.style.opacity = "0";
+      toast.style.transform = "translateY(100%)";
+      setTimeout(() => toast.remove(), 300);
     }, 3000);
   }
 }

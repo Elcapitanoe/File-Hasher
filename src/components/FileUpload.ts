@@ -1,186 +1,154 @@
-export class FileUpload {
-  private element: HTMLElement;
-  private onFileSelect: (file: File) => void;
-  private selectedFile: File | null = null;
+import { Icons } from "./Icons";
 
-  constructor(onFileSelect: (file: File) => void) {
+export class FileUpload {
+  private container: HTMLDivElement;
+  private dropzone!: HTMLDivElement;
+  private fileInput!: HTMLInputElement;
+  private fileActiveArea!: HTMLDivElement;
+  private progressContainer!: HTMLDivElement;
+  private progressFill!: HTMLDivElement;
+  private progressText!: HTMLSpanElement;
+
+
+  private onFileSelect: (file: File) => void;
+  private onFileRemove: () => void;
+
+  constructor(onFileSelect: (file: File) => void, onFileRemove: () => void) {
     this.onFileSelect = onFileSelect;
-    this.element = this.createElement();
+    this.onFileRemove = onFileRemove;
+    this.container = document.createElement("div");
+    this.container.className = "file-upload-wrapper";
+    this.render();
+    this.setupListeners();
   }
 
-  private createElement(): HTMLElement {
-    const container = document.createElement("div");
-    container.className = "file-upload-section";
-    container.innerHTML = `
-      <div class="file-upload-header">
-        <h3>Upload File to Hash</h3>
-        <p>Select a file to generate its hash values</p>
+  private render() {
+    this.container.innerHTML = `
+      <div class="file-dropzone" id="dropzone">
+        <div class="upload-icon">${Icons.upload}</div>
+        <p>Drag & drop a file here, or click to select</p>
+        <span class="sub-text">Maximum file size: 100MB</span>
+        <input type="file" id="fileInput" style="display: none;" />
       </div>
-      <div class="file-upload-area" id="fileDropArea">
-        <input type="file" id="fileInput" class="file-input" accept="*/*">
-        <div class="file-upload-content">
-          <div class="file-upload-icon">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14,2 14,8 20,8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10,9 9,9 8,9"></polyline>
-            </svg>
-          </div>
-          <div class="file-upload-text">
-            <p class="file-upload-primary">Click to select a file or drag and drop</p>
-            <p class="file-upload-secondary">Any file type supported • Max 100MB</p>
+
+      <div class="file-active" id="fileActiveArea" style="display: none;">
+        <div class="file-info">
+          <div style="color: var(--accent-color)">${Icons.file}</div>
+          <div>
+            <div class="file-name" id="fileName">filename.txt</div>
+            <div class="file-size" id="fileSize">1.2 MB</div>
           </div>
         </div>
-        <div class="file-selected-info" style="display: none;">
-          <div class="file-info">
-            <div class="file-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14,2 14,8 20,8"></polyline>
-              </svg>
-            </div>
-            <div class="file-details">
-              <div class="file-name"></div>
-              <div class="file-size"></div>
-            </div>
-          </div>
-          <button class="remove-file-btn" title="Remove file">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
+        <button class="btn-remove" id="removeFileBtn" title="Remove file">
+          ${Icons.trash}
+        </button>
+      </div>
+
+      <div class="progress-container" id="progressContainer" style="display: none;">
+        <div class="progress-header">
+          <span>Hashing File...</span>
+          <span id="progressText">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
         </div>
       </div>
     `;
 
-    this.setupEventListeners(container);
-    return container;
+    this.dropzone = this.container.querySelector("#dropzone")!;
+    this.fileInput = this.container.querySelector("#fileInput")!;
+    this.fileActiveArea = this.container.querySelector("#fileActiveArea")!;
+    this.progressContainer = this.container.querySelector("#progressContainer")!;
+    this.progressFill = this.container.querySelector("#progressFill")!;
+    this.progressText = this.container.querySelector("#progressText")!;
   }
 
-  private setupEventListeners(container: HTMLElement): void {
-    const fileInput = container.querySelector("#fileInput") as HTMLInputElement;
-    const dropArea = container.querySelector("#fileDropArea") as HTMLElement;
-    const removeBtn = container.querySelector(
-      ".remove-file-btn",
-    ) as HTMLButtonElement;
+  private setupListeners() {
+    this.dropzone.addEventListener("click", () => this.fileInput.click());
 
-    fileInput.addEventListener("change", (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        this.handleFileSelect(file);
-      }
-    });
-
-    dropArea.addEventListener("dragover", (e) => {
+    this.dropzone.addEventListener("dragover", (e) => {
       e.preventDefault();
-      dropArea.classList.add("drag-over");
+      this.dropzone.classList.add("drag-active");
     });
 
-    dropArea.addEventListener("dragleave", (e) => {
+    this.dropzone.addEventListener("dragleave", () => {
+      this.dropzone.classList.remove("drag-active");
+    });
+
+    this.dropzone.addEventListener("drop", (e) => {
       e.preventDefault();
-      if (!dropArea.contains(e.relatedTarget as Node)) {
-        dropArea.classList.remove("drag-over");
+      this.dropzone.classList.remove("drag-active");
+      if (e.dataTransfer?.files.length) {
+        this.handleFile(e.dataTransfer.files[0]);
       }
     });
 
-    dropArea.addEventListener("drop", (e) => {
-      e.preventDefault();
-      dropArea.classList.remove("drag-over");
-
-      const files = e.dataTransfer?.files;
-      if (files && files.length > 0) {
-        this.handleFileSelect(files[0]);
+    this.fileInput.addEventListener("change", (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target.files?.length) {
+        this.handleFile(target.files[0]);
       }
     });
 
-    dropArea.addEventListener("click", (e) => {
-      if (e.target === removeBtn || removeBtn.contains(e.target as Node)) {
-        return;
-      }
-      fileInput.click();
-    });
-
-    removeBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      this.clearFile();
-    });
+    const removeBtn = this.container.querySelector("#removeFileBtn")!;
+    removeBtn.addEventListener("click", () => this.clearFile());
   }
 
-  private handleFileSelect(file: File): void {
-    const maxSize = 100 * 1024 * 1024;
-    if (file.size > maxSize) {
-      this.showError(
-        "File size exceeds 100MB limit. Please select a smaller file.",
-      );
+  private handleFile(file: File) {
+    if (file.size > 100 * 1024 * 1024) {
+      alert("File is too large! Maximum size is 100MB.");
       return;
     }
+    
 
-    this.selectedFile = file;
-    this.showFileInfo(file);
+    // Update UI
+    this.dropzone.style.display = "none";
+    this.fileActiveArea.style.display = "flex";
+    
+    const fileNameEl = this.container.querySelector("#fileName")!;
+    const fileSizeEl = this.container.querySelector("#fileSize")!;
+    
+    fileNameEl.textContent = file.name;
+    fileSizeEl.textContent = this.formatBytes(file.size);
+    
     this.onFileSelect(file);
   }
 
-  private showFileInfo(file: File): void {
-    const uploadContent = this.element.querySelector(
-      ".file-upload-content",
-    ) as HTMLElement;
-    const selectedInfo = this.element.querySelector(
-      ".file-selected-info",
-    ) as HTMLElement;
-    const fileName = this.element.querySelector(".file-name") as HTMLElement;
-    const fileSize = this.element.querySelector(".file-size") as HTMLElement;
+  public clearFile() {
 
-    uploadContent.style.display = "none";
-    selectedInfo.style.display = "flex";
-
-    fileName.textContent = file.name;
-    fileSize.textContent = this.formatFileSize(file.size);
+    this.fileInput.value = "";
+    
+    this.dropzone.style.display = "flex";
+    this.fileActiveArea.style.display = "none";
+    this.hideProgress();
+    
+    this.onFileRemove();
   }
 
-  private clearFile(): void {
-    const uploadContent = this.element.querySelector(
-      ".file-upload-content",
-    ) as HTMLElement;
-    const selectedInfo = this.element.querySelector(
-      ".file-selected-info",
-    ) as HTMLElement;
-    const fileInput = this.element.querySelector(
-      "#fileInput",
-    ) as HTMLInputElement;
-
-    uploadContent.style.display = "flex";
-    selectedInfo.style.display = "none";
-    fileInput.value = "";
-    this.selectedFile = null;
+  public showProgress() {
+    this.progressContainer.style.display = "flex";
+    this.updateProgress(0);
   }
 
-  private formatFileSize(bytes: number): string {
-    if (bytes === 0) return "0 Bytes";
+  public updateProgress(percent: number) {
+    this.progressFill.style.width = `${percent}%`;
+    this.progressText.textContent = `${percent}%`;
+  }
+
+  public hideProgress() {
+    this.progressContainer.style.display = "none";
+    this.updateProgress(0);
+  }
+
+  private formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
     const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  private showError(message: string): void {
-    const errorDiv = document.createElement("div");
-    errorDiv.className = "error-toast";
-    errorDiv.textContent = message;
-    document.body.appendChild(errorDiv);
-
-    setTimeout(() => {
-      errorDiv.remove();
-    }, 3000);
-  }
-
-  getElement(): HTMLElement {
-    return this.element;
-  }
-
-  getSelectedFile(): File | null {
-    return this.selectedFile;
+  public getElement(): HTMLElement {
+    return this.container;
   }
 }

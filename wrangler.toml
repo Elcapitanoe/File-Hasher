@@ -1,0 +1,13 @@
+name = "file-hasher"
+compatibility_date = "2024-03-01"
+pages_build_output_dir = "dist"
+
+[site]
+bucket = "./dist"
+
+[[routes]]
+pattern = "/assets/*"
+script = "asset-handler"
+
+[env.production]
+name = "file-hasher-production"

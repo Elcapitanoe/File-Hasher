@@ -1,7 +1,7 @@
 {
-  "name": "vite-typescript-starter",
+  "name": "file-hasher",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,11 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "typescript": "~5.8.3",
-    "vite": "^7.0.3"
+    "@types/crypto-js": "^4.2.2",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.13"
+  },
+  "dependencies": {
+    "crypto-js": "^4.2.0"
   }
 }
