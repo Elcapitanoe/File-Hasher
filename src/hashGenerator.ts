@@ -24,7 +24,8 @@ interface PendingResolver {
 export interface AlgorithmMetadata {
   name: string;
   description: string;
-  outputLength: string;
+  outputBits: number;
+  outputChars: number;
 }
 
 export class HashEngine {
@@ -36,33 +37,39 @@ export class HashEngine {
   private static readonly METADATA: Record<HashAlgorithm, AlgorithmMetadata> = {
     md5: {
       name: "MD5",
-      description: "Message Digest Algorithm 5 (128-bit legacy digest)",
-      outputLength: "128 bits (32 hex characters)",
+      description: "Message Digest 5 (RFC 1321)",
+      outputBits: 128,
+      outputChars: 32,
     },
     sha1: {
       name: "SHA-1",
-      description: "Secure Hash Algorithm 1 (160-bit legacy digest)",
-      outputLength: "160 bits (40 hex characters)",
+      description: "Secure Hash Algorithm 1 (FIPS PUB 180-4)",
+      outputBits: 160,
+      outputChars: 40,
     },
     sha256: {
       name: "SHA-256",
-      description: "Secure Hash Algorithm 2 (256-bit standard)",
-      outputLength: "256 bits (64 hex characters)",
+      description: "Secure Hash Algorithm 2 (FIPS PUB 180-4)",
+      outputBits: 256,
+      outputChars: 64,
     },
     sha512: {
       name: "SHA-512",
-      description: "Secure Hash Algorithm 2 (512-bit standard)",
-      outputLength: "512 bits (128 hex characters)",
+      description: "Secure Hash Algorithm 2 (FIPS PUB 180-4)",
+      outputBits: 512,
+      outputChars: 128,
     },
     "sha3-256": {
       name: "SHA3-256",
-      description: "Keccak-based Secure Hash Algorithm 3 (256-bit)",
-      outputLength: "256 bits (64 hex characters)",
+      description: "Secure Hash Algorithm 3 (FIPS PUB 202)",
+      outputBits: 256,
+      outputChars: 64,
     },
     "sha3-512": {
       name: "SHA3-512",
-      description: "Keccak-based Secure Hash Algorithm 3 (512-bit)",
-      outputLength: "512 bits (128 hex characters)",
+      description: "Secure Hash Algorithm 3 (FIPS PUB 202)",
+      outputBits: 512,
+      outputChars: 128,
     },
   };
 

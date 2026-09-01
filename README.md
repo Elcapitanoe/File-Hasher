@@ -6,12 +6,12 @@ Client-side cryptographic hash generator built with TypeScript and Vite. Compute
 
 | Algorithm | Standard / Specification | Output Size | Engine |
 | :--- | :--- | :--- | :--- |
-| **MD5** | RFC 1321 | 128 bits (32 hex characters) | CryptoJS (Streamed) |
-| **SHA-1** | FIPS PUB 180-4 | 160 bits (40 hex characters) | Web Crypto API / CryptoJS |
-| **SHA-256** | FIPS PUB 180-4 | 256 bits (64 hex characters) | Web Crypto API / CryptoJS |
-| **SHA-512** | FIPS PUB 180-4 | 512 bits (128 hex characters) | Web Crypto API / CryptoJS |
-| **SHA3-256** | FIPS PUB 202 (Keccak) | 256 bits (64 hex characters) | CryptoJS (Streamed) |
-| **SHA3-512** | FIPS PUB 202 (Keccak) | 512 bits (128 hex characters) | CryptoJS (Streamed) |
+| **MD5** | RFC 1321 | 128 bits / 32 hex | CryptoJS (Streamed) |
+| **SHA-1** | FIPS PUB 180-4 | 160 bits / 40 hex | Web Crypto API / CryptoJS |
+| **SHA-256** | FIPS PUB 180-4 | 256 bits / 64 hex | Web Crypto API / CryptoJS |
+| **SHA-512** | FIPS PUB 180-4 | 512 bits / 128 hex | Web Crypto API / CryptoJS |
+| **SHA3-256** | FIPS PUB 202 (Keccak) | 256 bits / 64 hex | CryptoJS (Streamed) |
+| **SHA3-512** | FIPS PUB 202 (Keccak) | 512 bits / 128 hex | CryptoJS (Streamed) |
 
 ## Architecture
 

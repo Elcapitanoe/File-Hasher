@@ -25,7 +25,10 @@ export class HashCard {
           <span class="hash-name">${meta.name}</span>
           <span class="hash-description">${meta.description}</span>
         </div>
-        <span class="hash-length">${meta.outputLength}</span>
+        <div class="hash-badges">
+          <span class="hash-badge">${meta.outputBits}-bit</span>
+          <span class="hash-badge">${meta.outputChars} hex</span>
+        </div>
       </div>
       <div class="hash-value-container">
         <span class="hash-value empty" role="textbox" aria-readonly="true">Waiting for input...</span>
