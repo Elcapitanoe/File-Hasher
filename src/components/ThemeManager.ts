@@ -1,14 +1,13 @@
 import { Icons } from "./Icons";
 
 export class ThemeManager {
-  private container: HTMLDivElement;
+  private element: HTMLElement;
   private currentTheme: "light" | "dark" = "dark";
 
   constructor() {
-    this.container = document.createElement("div");
-    this.container.className = "controls-group";
-    
-    // Check system preference or saved preference
+    this.element = document.createElement("div");
+    this.element.className = "theme-switcher";
+
     const saved = localStorage.getItem("theme");
     if (saved === "light" || saved === "dark") {
       this.currentTheme = saved;
@@ -18,51 +17,50 @@ export class ThemeManager {
 
     this.render();
     this.applyTheme(this.currentTheme);
-    this.setupListeners();
+    this.bindEvents();
   }
 
-  private render() {
-    this.container.innerHTML = `
-      <button class="icon-btn" data-theme="light" title="Light Mode">
-        ${Icons.sun}
-      </button>
-      <button class="icon-btn" data-theme="dark" title="Dark Mode">
-        ${Icons.moon}
-      </button>
+  private render(): void {
+    this.element.innerHTML = `
+      <div class="controls-group" role="group" aria-label="Color scheme selection">
+        <button type="button" class="icon-btn" data-theme="light" title="Light theme" aria-label="Select light theme">
+          ${Icons.sun}
+        </button>
+        <button type="button" class="icon-btn" data-theme="dark" title="Dark theme" aria-label="Select dark theme">
+          ${Icons.moon}
+        </button>
+      </div>
     `;
-    this.updateActiveButton();
+    this.updateUI();
   }
 
-  private setupListeners() {
-    const buttons = this.container.querySelectorAll(".icon-btn");
+  private bindEvents(): void {
+    const buttons = this.element.querySelectorAll<HTMLButtonElement>(".icon-btn");
     buttons.forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const target = (e.currentTarget as HTMLButtonElement);
-        const theme = target.dataset.theme as "light" | "dark";
+      btn.addEventListener("click", () => {
+        const theme = btn.dataset.theme as "light" | "dark";
         this.applyTheme(theme);
       });
     });
   }
 
-  private applyTheme(theme: "light" | "dark") {
+  private applyTheme(theme: "light" | "dark"): void {
     this.currentTheme = theme;
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
-    this.updateActiveButton();
+    this.updateUI();
   }
 
-  private updateActiveButton() {
-    const buttons = this.container.querySelectorAll(".icon-btn");
+  private updateUI(): void {
+    const buttons = this.element.querySelectorAll<HTMLButtonElement>(".icon-btn");
     buttons.forEach((btn) => {
-      if ((btn as HTMLButtonElement).dataset.theme === this.currentTheme) {
-        btn.classList.add("active");
-      } else {
-        btn.classList.remove("active");
-      }
+      const matches = btn.dataset.theme === this.currentTheme;
+      btn.classList.toggle("active", matches);
+      btn.setAttribute("aria-pressed", matches.toString());
     });
   }
 
   public getElement(): HTMLElement {
-    return this.container;
+    return this.element;
   }
 }

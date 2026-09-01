@@ -1,123 +1,175 @@
-import { type HashAlgorithm } from "./workers/hashWorker";
+import type { HashAlgorithm } from "./workers/hashWorker";
 export type { HashAlgorithm };
 
-export interface HashResult {
+export interface HashTaskRequest {
+  id: string;
+  type: "hashText" | "hashFile";
   algorithm: HashAlgorithm;
-  input: string;
-  hash: string;
-  timestamp: Date;
+  payload: string | File;
 }
 
-export class HashGenerator {
-  private static worker: Worker | null = null;
-  private static resolvers = new Map<string, { resolve: (val: any) => void; reject: (err: any) => void }>();
-  private static progressCallbacks = new Map<string, (progress: number) => void>();
-  private static messageIdCounter = 0;
+export interface HashTaskResponse {
+  id: string;
+  type: "success" | "error" | "progress";
+  result?: string;
+  error?: string;
+  progress?: number;
+}
+
+interface PendingResolver {
+  resolve: (value: string) => void;
+  reject: (reason?: unknown) => void;
+}
+
+export interface AlgorithmMetadata {
+  name: string;
+  description: string;
+  outputLength: string;
+}
+
+export class HashEngine {
+  private static workerInstance: Worker | null = null;
+  private static pendingResolvers = new Map<string, PendingResolver>();
+  private static progressHandlers = new Map<string, (progress: number) => void>();
+  private static sequenceId = 0;
+
+  private static readonly METADATA: Record<HashAlgorithm, AlgorithmMetadata> = {
+    md5: {
+      name: "MD5",
+      description: "Message Digest Algorithm 5 (128-bit legacy digest)",
+      outputLength: "128 bits (32 hex characters)",
+    },
+    sha1: {
+      name: "SHA-1",
+      description: "Secure Hash Algorithm 1 (160-bit legacy digest)",
+      outputLength: "160 bits (40 hex characters)",
+    },
+    sha256: {
+      name: "SHA-256",
+      description: "Secure Hash Algorithm 2 (256-bit standard)",
+      outputLength: "256 bits (64 hex characters)",
+    },
+    sha512: {
+      name: "SHA-512",
+      description: "Secure Hash Algorithm 2 (512-bit standard)",
+      outputLength: "512 bits (128 hex characters)",
+    },
+    "sha3-256": {
+      name: "SHA3-256",
+      description: "Keccak-based Secure Hash Algorithm 3 (256-bit)",
+      outputLength: "256 bits (64 hex characters)",
+    },
+    "sha3-512": {
+      name: "SHA3-512",
+      description: "Keccak-based Secure Hash Algorithm 3 (512-bit)",
+      outputLength: "512 bits (128 hex characters)",
+    },
+  };
 
   private static getWorker(): Worker {
-    if (!this.worker) {
-      this.worker = new Worker(new URL('./workers/hashWorker.ts', import.meta.url), { type: 'module' });
-      this.worker.onmessage = (e) => this.handleWorkerMessage(e);
-      this.worker.onerror = (e) => {
-        console.error("Hash Worker Error:", e);
+    if (!this.workerInstance) {
+      this.workerInstance = new Worker(
+        new URL("./workers/hashWorker.ts", import.meta.url),
+        { type: "module" }
+      );
+      this.workerInstance.onmessage = (event: MessageEvent<HashTaskResponse>) => {
+        this.handleMessage(event.data);
+      };
+      this.workerInstance.onerror = (event: ErrorEvent) => {
+        this.handleWorkerFailure(event.message);
       };
     }
-    return this.worker;
+    return this.workerInstance;
   }
 
-  private static handleWorkerMessage(e: MessageEvent) {
-    const { id, type, result, error, progress } = e.data;
-    
-    if (type === 'progress') {
-      const cb = this.progressCallbacks.get(id);
-      if (cb) cb(progress);
+  private static handleMessage(data: HashTaskResponse): void {
+    const { id, type, result, error, progress } = data;
+
+    if (type === "progress") {
+      const handler = this.progressHandlers.get(id);
+      if (handler && typeof progress === "number") {
+        handler(progress);
+      }
       return;
     }
 
-    const resolver = this.resolvers.get(id);
-    if (!resolver) return;
-
-    if (type === 'success') {
-      resolver.resolve(result);
-    } else {
-      resolver.reject(new Error(error));
+    const resolver = this.pendingResolvers.get(id);
+    if (!resolver) {
+      return;
     }
 
-    this.resolvers.delete(id);
-    this.progressCallbacks.delete(id);
+    if (type === "success" && typeof result === "string") {
+      resolver.resolve(result);
+    } else {
+      resolver.reject(new Error(error || "Unknown hashing failure"));
+    }
+
+    this.cleanupTask(id);
   }
 
-  private static createMessageId(): string {
-    return `msg_${++this.messageIdCounter}_${Date.now()}`;
+  private static handleWorkerFailure(message: string): void {
+    const error = new Error(`Worker execution failed: ${message}`);
+    for (const [id, resolver] of this.pendingResolvers.entries()) {
+      resolver.reject(error);
+      this.cleanupTask(id);
+    }
   }
 
-  static async generateHash(
+  private static cleanupTask(id: string): void {
+    this.pendingResolvers.delete(id);
+    this.progressHandlers.delete(id);
+  }
+
+  private static nextId(): string {
+    this.sequenceId += 1;
+    return `hash_task_${this.sequenceId}_${Date.now()}`;
+  }
+
+  public static async hashText(
     algorithm: HashAlgorithm,
-    input: string,
+    input: string
   ): Promise<string> {
-    if (!input) return "";
+    if (!input) {
+      return "";
+    }
 
-    const id = this.createMessageId();
-    return new Promise((resolve, reject) => {
-      this.resolvers.set(id, { resolve, reject });
-      this.getWorker().postMessage({ id, type: 'hashText', algorithm, payload: input });
+    const id = this.nextId();
+    return new Promise<string>((resolve, reject) => {
+      this.pendingResolvers.set(id, { resolve, reject });
+      this.getWorker().postMessage({
+        id,
+        type: "hashText",
+        algorithm,
+        payload: input,
+      } as HashTaskRequest);
     });
   }
 
-  static async generateHashFromFile(
+  public static async hashFile(
     algorithm: HashAlgorithm,
     file: File,
     onProgress?: (progress: number) => void
   ): Promise<string> {
-    if (!file || file.size === 0) return "";
+    if (!file || file.size === 0) {
+      return "";
+    }
 
-    const id = this.createMessageId();
-    return new Promise((resolve, reject) => {
-      this.resolvers.set(id, { resolve, reject });
+    const id = this.nextId();
+    return new Promise<string>((resolve, reject) => {
+      this.pendingResolvers.set(id, { resolve, reject });
       if (onProgress) {
-        this.progressCallbacks.set(id, onProgress);
+        this.progressHandlers.set(id, onProgress);
       }
-      this.getWorker().postMessage({ id, type: 'hashFile', algorithm, payload: file });
+      this.getWorker().postMessage({
+        id,
+        type: "hashFile",
+        algorithm,
+        payload: file,
+      } as HashTaskRequest);
     });
   }
 
-  static getAlgorithmInfo(algorithm: HashAlgorithm): {
-    name: string;
-    description: string;
-    outputLength: string;
-  } {
-    const info = {
-      md5: {
-        name: "MD5",
-        description: "Message Digest 5 - Fast but cryptographically broken",
-        outputLength: "128 bits (32 hex chars)",
-      },
-      sha1: {
-        name: "SHA-1",
-        description: "Secure Hash Algorithm 1 - Deprecated for security",
-        outputLength: "160 bits (40 hex chars)",
-      },
-      sha256: {
-        name: "SHA-256",
-        description: "Secure Hash Algorithm 256-bit - Widely used and secure",
-        outputLength: "256 bits (64 hex chars)",
-      },
-      sha512: {
-        name: "SHA-512",
-        description: "Secure Hash Algorithm 512-bit - Highly secure, large output",
-        outputLength: "512 bits (128 hex chars)",
-      },
-      "sha3-256": {
-        name: "SHA-3 256",
-        description: "Latest SHA-3 standard with 256-bit output",
-        outputLength: "256 bits (64 hex chars)",
-      },
-      "sha3-512": {
-        name: "SHA-3 512",
-        description: "Latest SHA-3 standard with 512-bit output",
-        outputLength: "512 bits (128 hex chars)",
-      },
-    };
-    return info[algorithm];
+  public static getMetadata(algorithm: HashAlgorithm): AlgorithmMetadata {
+    return this.METADATA[algorithm];
   }
 }

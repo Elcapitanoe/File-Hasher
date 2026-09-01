@@ -1,99 +1,103 @@
-import { type HashAlgorithm, HashGenerator } from "../hashGenerator";
+import { type HashAlgorithm, HashEngine } from "../hashGenerator";
 import { Icons } from "./Icons";
 
 export class HashCard {
-  private container: HTMLDivElement;
-  private hashValueEl!: HTMLDivElement;
-  private copyBtn!: HTMLButtonElement;
-  private currentHash: string = "";
+  private element: HTMLElement;
+  private valueElement!: HTMLElement;
+  private copyButton!: HTMLButtonElement;
+  private currentHash = "";
   private algorithm: HashAlgorithm;
 
   constructor(algorithm: HashAlgorithm) {
     this.algorithm = algorithm;
-    this.container = document.createElement("div");
-    this.container.className = "hash-card";
+    this.element = document.createElement("div");
+    this.element.className = "hash-card";
     this.render();
-    this.setupListeners();
+    this.bindEvents();
   }
 
-  private render() {
-    const info = HashGenerator.getAlgorithmInfo(this.algorithm);
-    
-    this.container.innerHTML = `
+  private render(): void {
+    const meta = HashEngine.getMetadata(this.algorithm);
+
+    this.element.innerHTML = `
       <div class="hash-header">
-        <h3 class="hash-name">${info.name}</h3>
-        <span class="hash-length">${info.outputLength}</span>
+        <div class="hash-meta">
+          <span class="hash-name">${meta.name}</span>
+          <span class="hash-description">${meta.description}</span>
+        </div>
+        <span class="hash-length">${meta.outputLength}</span>
       </div>
       <div class="hash-value-container">
-        <div class="hash-value empty" title="Waiting for input...">Waiting for input...</div>
-        <button class="icon-btn btn-copy" title="Copy to clipboard" disabled>
+        <span class="hash-value empty" role="textbox" aria-readonly="true">Waiting for input...</span>
+        <button type="button" class="icon-btn btn-copy" aria-label="Copy ${meta.name} hash" title="Copy to clipboard" disabled>
           ${Icons.copy}
         </button>
       </div>
     `;
 
-    this.hashValueEl = this.container.querySelector(".hash-value")!;
-    this.copyBtn = this.container.querySelector(".btn-copy")!;
+    this.valueElement = this.element.querySelector(".hash-value")!;
+    this.copyButton = this.element.querySelector(".btn-copy")!;
   }
 
-  private setupListeners() {
-    this.copyBtn.addEventListener("click", () => {
+  private bindEvents(): void {
+    this.copyButton.addEventListener("click", async () => {
       if (!this.currentHash) return;
-      
-      navigator.clipboard.writeText(this.currentHash).then(() => {
-        this.copyBtn.innerHTML = Icons.check;
-        this.copyBtn.classList.add("success");
-        
+
+      try {
+        await navigator.clipboard.writeText(this.currentHash);
+        this.copyButton.innerHTML = Icons.check;
+        this.copyButton.classList.add("success");
+
         setTimeout(() => {
-          this.copyBtn.innerHTML = Icons.copy;
-          this.copyBtn.classList.remove("success");
-        }, 2000);
-      });
+          this.copyButton.innerHTML = Icons.copy;
+          this.copyButton.classList.remove("success");
+        }, 1500);
+      } catch (err) {
+        console.error("Clipboard copy failed:", err);
+      }
     });
   }
 
   public getElement(): HTMLElement {
-    return this.container;
+    return this.element;
   }
 
-  public setLoading(loading: boolean) {
+  public setLoading(loading: boolean): void {
     if (loading) {
-      this.hashValueEl.className = "hash-value skeleton skeleton-text";
-      this.hashValueEl.textContent = "";
-      this.hashValueEl.title = "Computing...";
-      this.copyBtn.disabled = true;
+      this.valueElement.className = "hash-value skeleton skeleton-text";
+      this.valueElement.textContent = "";
+      this.copyButton.disabled = true;
     }
   }
 
-  public setHash(hash: string) {
+  public setHash(hash: string): void {
     this.currentHash = hash;
-    
-    this.hashValueEl.className = "hash-value";
-    
+    this.valueElement.className = "hash-value";
+
     if (hash) {
-      this.hashValueEl.textContent = hash;
-      this.hashValueEl.title = hash;
-      this.copyBtn.disabled = false;
+      this.valueElement.textContent = hash;
+      this.valueElement.title = hash;
+      this.copyButton.disabled = false;
     } else {
-      this.hashValueEl.classList.add("empty");
-      this.hashValueEl.textContent = "Waiting for input...";
-      this.hashValueEl.title = "Waiting for input...";
-      this.copyBtn.disabled = true;
+      this.valueElement.classList.add("empty");
+      this.valueElement.textContent = "Waiting for input...";
+      this.valueElement.title = "";
+      this.copyButton.disabled = true;
     }
   }
 
-  public async updateHash(input: string): Promise<void> {
+  public async computeText(input: string): Promise<void> {
     if (!input) {
       this.setHash("");
       return;
     }
-    
+
     this.setLoading(true);
     try {
-      const hash = await HashGenerator.generateHash(this.algorithm, input);
+      const hash = await HashEngine.hashText(this.algorithm, input);
       this.setHash(hash);
-    } catch (e) {
-      this.setHash("Error computing hash");
+    } catch {
+      this.setHash("Error computing digest");
     }
   }
 }

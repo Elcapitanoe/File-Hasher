@@ -1,186 +1,166 @@
 import "./style.css";
-import { type HashAlgorithm, HashGenerator } from "./hashGenerator";
+import { type HashAlgorithm, HashEngine } from "./hashGenerator";
 import { HashCard } from "./components/HashCard";
 import { InputSection } from "./components/InputSection";
 import { FileUpload } from "./components/FileUpload";
 import { ThemeManager } from "./components/ThemeManager";
 import { Icons } from "./components/Icons";
 
-class HashGeneratorApp {
-  private hashCards: Map<HashAlgorithm, HashCard> = new Map();
+const ALGORITHMS: HashAlgorithm[] = [
+  "md5",
+  "sha1",
+  "sha256",
+  "sha512",
+  "sha3-256",
+  "sha3-512",
+];
+
+class HashApp {
+  private hashCards = new Map<HashAlgorithm, HashCard>();
   private inputSection!: InputSection;
   private fileUpload!: FileUpload;
   private themeManager!: ThemeManager;
-  
   private debounceTimer: number | null = null;
-  private currentMode: "text" | "file" = "text";
+  private mode: "text" | "file" = "text";
 
   constructor() {
-    this.initializeApp();
+    this.init();
   }
 
-  private initializeApp(): void {
-    const appEl = document.querySelector<HTMLDivElement>("#app");
-    if (!appEl) return;
+  private init(): void {
+    const root = document.querySelector<HTMLDivElement>("#app");
+    if (!root) return;
 
-    appEl.innerHTML = `
+    root.innerHTML = `
       <div class="app-layout">
         <header class="app-header">
           <div class="brand">
-            <div class="brand-icon">${Icons.shield}</div>
-            <h1 class="brand-title">File Hasher</h1>
+            <span class="brand-icon">${Icons.shield}</span>
+            <div class="brand-info">
+              <h1 class="brand-title">File Hasher</h1>
+              <span class="brand-subtitle">Cryptographic Digest Generator</span>
+            </div>
           </div>
-          <div id="theme-controls"></div>
+          <div id="themeMount"></div>
         </header>
 
         <main class="main-content">
-          <section id="input-mount"></section>
+          <section id="inputMount"></section>
           
-          <section class="hash-results">
-            <h2 class="hash-results-title">Computed Hashes</h2>
-            <div class="hash-grid" id="hash-grid"></div>
+          <section class="hash-section">
+            <div class="section-header">
+              <h2 class="section-title">Cryptographic Digests</h2>
+            </div>
+            <div class="hash-grid" id="hashGrid"></div>
           </section>
         </main>
 
         <footer class="app-footer">
-          <div>Built for speed and privacy. All operations are local.</div>
+          <p class="footer-note">Client-side cryptographic hashing via Web Workers and Web Crypto API.</p>
           <div class="footer-links">
-            <a href="https://github.com/Elcapitanoe/File-Hasher" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub</a>
+            <a href="https://github.com/Elcapitanoe/File-Hasher" target="_blank" rel="noopener noreferrer" class="footer-link">Source Repository</a>
           </div>
         </footer>
       </div>
     `;
 
-    this.mountComponents();
-    this.setupKeyboardShortcuts();
+    this.mount();
+    this.bindShortcuts();
   }
 
-  private mountComponents(): void {
-    // Theme Manager
+  private mount(): void {
     this.themeManager = new ThemeManager();
-    document.getElementById("theme-controls")?.appendChild(this.themeManager.getElement());
+    document.getElementById("themeMount")?.appendChild(this.themeManager.getElement());
 
-    // Input Section
     this.inputSection = new InputSection(
-      (value: string) => this.handleTextInput(value),
-      (mode: "text" | "file") => this.handleModeChange(mode)
+      (val) => this.handleTextInput(val),
+      (mode) => this.handleModeChange(mode)
     );
-    document.getElementById("input-mount")?.appendChild(this.inputSection.getElement());
+    document.getElementById("inputMount")?.appendChild(this.inputSection.getElement());
 
-    // File Upload
     this.fileUpload = new FileUpload(
-      (file: File) => this.handleFileSelect(file),
-      () => this.handleClearAll()
+      (file) => this.handleFile(file),
+      () => this.handleClear()
     );
-    this.inputSection.getFileContainer().appendChild(this.fileUpload.getElement());
+    this.inputSection.getFileMount().appendChild(this.fileUpload.getElement());
 
-    // Hash Cards
-    const grid = document.getElementById("hash-grid");
-    const algorithms: HashAlgorithm[] = ["md5", "sha1", "sha256", "sha512", "sha3-256", "sha3-512"];
-
-    algorithms.forEach((algorithm) => {
-      const card = new HashCard(algorithm);
-      this.hashCards.set(algorithm, card);
+    const grid = document.getElementById("hashGrid");
+    ALGORITHMS.forEach((algo) => {
+      const card = new HashCard(algo);
+      this.hashCards.set(algo, card);
       grid?.appendChild(card.getElement());
     });
   }
 
-  private setupKeyboardShortcuts(): void {
-    document.addEventListener("keydown", (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === "k") {
-        event.preventDefault();
-        if (this.currentMode === "text") {
+  private bindShortcuts(): void {
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        if (this.mode === "text") {
           this.inputSection.focus();
         }
       }
-      if ((event.ctrlKey || event.metaKey) && event.key === "l") {
-        event.preventDefault();
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "l") {
+        e.preventDefault();
         this.inputSection.clearText();
-        this.handleClearAll();
+        this.handleClear();
       }
     });
   }
 
   private handleTextInput(value: string): void {
-    if (this.currentMode !== "text") return;
+    if (this.mode !== "text") return;
 
     if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
+      window.clearTimeout(this.debounceTimer);
     }
 
     if (!value) {
-      this.handleClearAll();
+      this.handleClear();
       return;
     }
 
     this.debounceTimer = window.setTimeout(() => {
-      this.hashCards.forEach(card => card.updateHash(value));
-    }, 300);
+      this.hashCards.forEach((card) => card.computeText(value));
+    }, 200);
   }
 
-  private handleClearAll(): void {
+  private handleClear(): void {
     if (this.debounceTimer) {
-      clearTimeout(this.debounceTimer);
+      window.clearTimeout(this.debounceTimer);
     }
-    this.hashCards.forEach(card => card.setHash(""));
+    this.hashCards.forEach((card) => card.setHash(""));
   }
 
-  private handleModeChange(mode: "text" | "file"): void {
-    this.currentMode = mode;
-    this.handleClearAll();
+  private handleModeChange(newMode: "text" | "file"): void {
+    this.mode = newMode;
+    this.handleClear();
   }
 
-  private async handleFileSelect(file: File): Promise<void> {
-    if (this.currentMode !== "file") return;
+  private async handleFile(file: File): Promise<void> {
+    if (this.mode !== "file") return;
 
     this.fileUpload.showProgress();
-    
-    try {
-      const promises = Array.from(this.hashCards.entries()).map(async ([algo, card]) => {
-        card.setLoading(true);
-        // We only attach progress callback to the heaviest/primary hash to avoid UI jitter
-        const onProgress = algo === "sha256" ? (p: number) => this.fileUpload.updateProgress(p) : undefined;
-        
-        try {
-          const hash = await HashGenerator.generateHashFromFile(algo, file, onProgress);
-          card.setHash(hash);
-        } catch (error) {
-          card.setHash("Error computing hash");
-          console.error(error);
-        }
-      });
 
-      await Promise.all(promises);
-      this.fileUpload.updateProgress(100);
-      setTimeout(() => this.fileUpload.hideProgress(), 1000);
-    } catch (e) {
-      this.showToast("Error processing file", "error");
-      this.fileUpload.hideProgress();
-    }
-  }
+    const tasks = Array.from(this.hashCards.entries()).map(async ([algo, card]) => {
+      card.setLoading(true);
+      const onProgress = algo === "sha256" ? (p: number) => this.fileUpload.updateProgress(p) : undefined;
 
-  private showToast(message: string, type: "success" | "error" = "success") {
-    let container = document.querySelector(".toast-container");
-    if (!container) {
-      container = document.createElement("div");
-      container.className = "toast-container";
-      document.body.appendChild(container);
-    }
+      try {
+        const hash = await HashEngine.hashFile(algo, file, onProgress);
+        card.setHash(hash);
+      } catch (err) {
+        card.setHash("Error computing digest");
+        console.error(`Hashing failed for ${algo}:`, err);
+      }
+    });
 
-    const toast = document.createElement("div");
-    toast.className = `toast ${type}`;
-    toast.innerHTML = type === "error" ? "⚠️ " + message : Icons.check + " " + message;
-    
-    container.appendChild(toast);
-
-    setTimeout(() => {
-      toast.style.opacity = "0";
-      toast.style.transform = "translateY(100%)";
-      setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    await Promise.all(tasks);
+    this.fileUpload.updateProgress(100);
+    window.setTimeout(() => this.fileUpload.hideProgress(), 800);
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  new HashGeneratorApp();
+  new HashApp();
 });
