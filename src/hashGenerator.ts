@@ -1,14 +1,14 @@
 import type { HashAlgorithm } from "./workers/hashWorker";
 export type { HashAlgorithm };
 
-export interface HashTaskRequest {
+interface HashTaskRequest {
   id: string;
   type: "hashText" | "hashFile";
   algorithm: HashAlgorithm;
   payload: string | File;
 }
 
-export interface HashTaskResponse {
+interface HashTaskResponse {
   id: string;
   type: "success" | "error" | "progress";
   result?: string;
@@ -21,7 +21,7 @@ interface PendingResolver {
   reject: (reason?: unknown) => void;
 }
 
-export interface AlgorithmMetadata {
+interface AlgorithmMetadata {
   name: string;
   description: string;
   outputBits: number;
@@ -75,17 +75,20 @@ export class HashEngine {
 
   private static getWorker(): Worker {
     if (!this.workerInstance) {
-      this.workerInstance = new Worker(
+      const worker = new Worker(
         new URL("./workers/hashWorker.ts", import.meta.url),
         { type: "module" }
       );
-      this.workerInstance.onmessage = (event: MessageEvent<HashTaskResponse>) => {
+      worker.onmessage = (event: MessageEvent<HashTaskResponse>) => {
         this.handleMessage(event.data);
       };
-      this.workerInstance.onerror = (event: ErrorEvent) => {
-        this.handleWorkerFailure(event.message);
+      worker.onerror = (event: ErrorEvent) => {
+        event.preventDefault();
+        this.handleWorkerFailure(event.message || "Unknown worker error");
       };
+      this.workerInstance = worker;
     }
+
     return this.workerInstance;
   }
 
@@ -101,9 +104,7 @@ export class HashEngine {
     }
 
     const resolver = this.pendingResolvers.get(id);
-    if (!resolver) {
-      return;
-    }
+    if (!resolver) return;
 
     if (type === "success" && typeof result === "string") {
       resolver.resolve(result);
@@ -116,7 +117,10 @@ export class HashEngine {
 
   private static handleWorkerFailure(message: string): void {
     const error = new Error(`Worker execution failed: ${message}`);
-    for (const [id, resolver] of this.pendingResolvers.entries()) {
+    this.workerInstance?.terminate();
+    this.workerInstance = null;
+
+    for (const [id, resolver] of this.pendingResolvers) {
       resolver.reject(error);
       this.cleanupTask(id);
     }
@@ -129,51 +133,66 @@ export class HashEngine {
 
   private static nextId(): string {
     this.sequenceId += 1;
-    return `hash_task_${this.sequenceId}_${Date.now()}`;
+    return `hash_task_${Date.now()}_${this.sequenceId}`;
   }
 
-  public static async hashText(
-    algorithm: HashAlgorithm,
-    input: string
+  private static dispatch(
+    request: HashTaskRequest,
+    onProgress?: (progress: number) => void
   ): Promise<string> {
-    if (!input) {
-      return "";
-    }
-
-    const id = this.nextId();
     return new Promise<string>((resolve, reject) => {
-      this.pendingResolvers.set(id, { resolve, reject });
-      this.getWorker().postMessage({
-        id,
-        type: "hashText",
-        algorithm,
-        payload: input,
-      } as HashTaskRequest);
+      this.pendingResolvers.set(request.id, { resolve, reject });
+      if (onProgress) this.progressHandlers.set(request.id, onProgress);
+
+      try {
+        this.getWorker().postMessage(request);
+      } catch (error) {
+        this.cleanupTask(request.id);
+        reject(error instanceof Error ? error : new Error("Unable to start hashing worker"));
+      }
     });
   }
 
-  public static async hashFile(
+  public static cancelPendingTasks(): void {
+    if (this.pendingResolvers.size === 0) return;
+
+    this.workerInstance?.terminate();
+    this.workerInstance = null;
+    const error = new DOMException("Hashing operation cancelled", "AbortError");
+
+    for (const [id, resolver] of this.pendingResolvers) {
+      resolver.reject(error);
+      this.cleanupTask(id);
+    }
+  }
+
+  public static hashText(algorithm: HashAlgorithm, input: string): Promise<string> {
+    if (!input) return Promise.resolve("");
+
+    return this.dispatch({
+      id: this.nextId(),
+      type: "hashText",
+      algorithm,
+      payload: input,
+    });
+  }
+
+  public static hashFile(
     algorithm: HashAlgorithm,
     file: File,
     onProgress?: (progress: number) => void
   ): Promise<string> {
-    if (!file || file.size === 0) {
-      return "";
-    }
+    if (!file) return Promise.resolve("");
 
-    const id = this.nextId();
-    return new Promise<string>((resolve, reject) => {
-      this.pendingResolvers.set(id, { resolve, reject });
-      if (onProgress) {
-        this.progressHandlers.set(id, onProgress);
-      }
-      this.getWorker().postMessage({
-        id,
+    return this.dispatch(
+      {
+        id: this.nextId(),
         type: "hashFile",
         algorithm,
         payload: file,
-      } as HashTaskRequest);
-    });
+      },
+      onProgress
+    );
   }
 
   public static getMetadata(algorithm: HashAlgorithm): AlgorithmMetadata {

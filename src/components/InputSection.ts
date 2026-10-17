@@ -51,6 +51,8 @@ export class InputSection {
     this.tabs.forEach((tab) => {
       tab.addEventListener("click", () => {
         const mode = tab.dataset.mode as "text" | "file";
+        const activeMode = this.element.querySelector<HTMLButtonElement>(".tab.active")?.dataset.mode;
+        if (mode === activeMode) return;
 
         this.tabs.forEach((t) => {
           t.classList.remove("active");
@@ -58,6 +60,8 @@ export class InputSection {
         });
         tab.classList.add("active");
         tab.setAttribute("aria-selected", "true");
+
+        this.onMode(mode);
 
         const textWrapper = this.element.querySelector<HTMLElement>("#textInputWrapper")!;
         if (mode === "text") {
@@ -68,8 +72,6 @@ export class InputSection {
           textWrapper.style.display = "none";
           this.fileMount.style.display = "block";
         }
-
-        this.onMode(mode);
       });
     });
   }

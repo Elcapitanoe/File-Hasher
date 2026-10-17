@@ -6,6 +6,7 @@ export class HashCard {
   private valueElement!: HTMLElement;
   private copyButton!: HTMLButtonElement;
   private currentHash = "";
+  private requestVersion = 0;
   private algorithm: HashAlgorithm;
 
   constructor(algorithm: HashAlgorithm) {
@@ -65,15 +66,30 @@ export class HashCard {
     return this.element;
   }
 
-  public setLoading(loading: boolean): void {
-    if (loading) {
-      this.valueElement.className = "hash-value skeleton skeleton-text";
-      this.valueElement.textContent = "";
-      this.copyButton.disabled = true;
-    }
+  public setLoading(): void {
+    this.requestVersion += 1;
+    this.currentHash = "";
+    this.valueElement.className = "hash-value skeleton skeleton-text";
+    this.valueElement.textContent = "";
+    this.valueElement.title = "";
+    this.copyButton.disabled = true;
   }
 
   public setHash(hash: string): void {
+    this.requestVersion += 1;
+    this.renderHash(hash);
+  }
+
+  public setError(message = "Error computing digest"): void {
+    this.requestVersion += 1;
+    this.currentHash = "";
+    this.valueElement.className = "hash-value error";
+    this.valueElement.textContent = message;
+    this.valueElement.title = message;
+    this.copyButton.disabled = true;
+  }
+
+  private renderHash(hash: string): void {
     this.currentHash = hash;
     this.valueElement.className = "hash-value";
 
@@ -81,12 +97,13 @@ export class HashCard {
       this.valueElement.textContent = hash;
       this.valueElement.title = hash;
       this.copyButton.disabled = false;
-    } else {
-      this.valueElement.classList.add("empty");
-      this.valueElement.textContent = "Waiting for input...";
-      this.valueElement.title = "";
-      this.copyButton.disabled = true;
+      return;
     }
+
+    this.valueElement.classList.add("empty");
+    this.valueElement.textContent = "Waiting for input...";
+    this.valueElement.title = "";
+    this.copyButton.disabled = true;
   }
 
   public async computeText(input: string): Promise<void> {
@@ -95,12 +112,14 @@ export class HashCard {
       return;
     }
 
-    this.setLoading(true);
+    this.setLoading();
+    const requestVersion = this.requestVersion;
+
     try {
       const hash = await HashEngine.hashText(this.algorithm, input);
-      this.setHash(hash);
+      if (requestVersion === this.requestVersion) this.renderHash(hash);
     } catch {
-      this.setHash("Error computing digest");
+      if (requestVersion === this.requestVersion) this.setError();
     }
   }
 }

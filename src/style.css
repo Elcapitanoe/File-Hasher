@@ -17,12 +17,9 @@
   --error-color: #ef4444;
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
   
   --radius-sm: 4px;
   --radius-md: 8px;
-  --radius-lg: 12px;
   --radius-full: 9999px;
   
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -45,8 +42,6 @@
   --accent-glow: rgba(59, 130, 246, 0.08);
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
 }
 
 * {
@@ -437,12 +432,6 @@ body {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-.hash-length {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
-
 .hash-value-container {
   display: flex;
   align-items: center;
@@ -461,6 +450,10 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.hash-value.error {
+  color: var(--error-color);
 }
 
 .hash-value.empty {

@@ -1,5 +1,5 @@
 permissions:
-  contents: write
+  contents: read
 
 name: Build and Package Source ZIP
 
@@ -17,28 +17,30 @@ jobs:
       contents: read
     outputs:
       artifact_name: ${{ steps.gen.outputs.artifact_name }}
-      release_date: ${{ steps.current_time.outputs.year }}${{ steps.current_time.outputs.month }}${{ steps.current_time.outputs.day }}
+      release_date: ${{ steps.gen.outputs.release_date }}
 
     steps:
       - uses: actions/checkout@v4
         with: 
           fetch-depth: 0
 
-      - name: Get current date
-        id: current_time
-        uses: josStorer/get-current-time@v2
-        with:
-          format: 'YYYYMMDD'
-
       - name: Generate artifact filename
         id: gen
+        env:
+          VERSION: ${{ inputs.version }}
         run: |
-          TAG=${{ github.event.inputs.version }}
-          DATE=${{ steps.current_time.outputs.formattedTime }}
-          echo "artifact_name=FileHasher_${TAG}-${DATE}.zip" >> $GITHUB_OUTPUT
+          if [[ ! "$VERSION" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$ ]]; then
+            echo "Invalid release version/tag." >&2
+            exit 1
+          fi
+          DATE="$(date -u +%Y%m%d)"
+          echo "artifact_name=FileHasher_${VERSION}-${DATE}.zip" >> "$GITHUB_OUTPUT"
+          echo "release_date=${DATE}" >> "$GITHUB_OUTPUT"
 
       - name: Create ZIP
-        run: zip -r "${{ steps.gen.outputs.artifact_name }}" . -x ".git/*" ".github/*"
+        env:
+          ARTIFACT_NAME: ${{ steps.gen.outputs.artifact_name }}
+        run: zip -r "$ARTIFACT_NAME" . -x ".git/*" ".github/*" "node_modules/*" "dist/*"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -59,10 +61,14 @@ jobs:
 
       - name: Generate release notes
         id: notes
+        env:
+          VERSION: ${{ inputs.version }}
         run: |
-          PREV_TAG=$(git tag --sort=-creatordate | grep -v "${{ github.event.inputs.version }}" | head -n1)
-          [ -z "$PREV_TAG" ] && PREV_TAG=$(git rev-list --max-parents=0 HEAD)
-          git log $PREV_TAG..HEAD --pretty=format:'- %s ([%h](https://github.com/'"$GITHUB_REPOSITORY"'/commit/%H))' > notes.md
+          PREV_TAG="$(git tag --sort=-creatordate | grep -Fvx -- "$VERSION" | head -n 1 || true)"
+          if [ -z "$PREV_TAG" ]; then
+            PREV_TAG="$(git rev-list --max-parents=0 HEAD)"
+          fi
+          git log "$PREV_TAG..HEAD" --pretty=format:'- %s ([%h](https://github.com/'"$GITHUB_REPOSITORY"'/commit/%H))' > notes.md
 
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -73,8 +79,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.version }}
-          name: ${{ github.event.inputs.version }}-${{ needs.package.outputs.release_date }}
+          tag_name: ${{ inputs.version }}
+          name: ${{ inputs.version }}-${{ needs.package.outputs.release_date }}
           body_path: notes.md
           files: ${{ needs.package.outputs.artifact_name }}
           draft: false

@@ -1,84 +1,69 @@
 # File Hasher
 
-Client-side cryptographic hash generator built with TypeScript and Vite. Computes digests locally in the browser using Web Crypto API and Web Workers with streaming chunk processing.
+A browser-based hash generator built with TypeScript and Vite. Text and file contents are hashed locally in a dedicated Web Worker; files are processed in 4 MiB chunks so the application does not need to read an entire file into memory.
 
-## Supported Algorithms
+## Supported algorithms
 
-| Algorithm | Standard / Specification | Output Size | Engine |
+| Algorithm | Standard | Output size | Notes |
 | :--- | :--- | :--- | :--- |
-| **MD5** | RFC 1321 | 128 bits / 32 hex | CryptoJS (Streamed) |
-| **SHA-1** | FIPS PUB 180-4 | 160 bits / 40 hex | Web Crypto API / CryptoJS |
-| **SHA-256** | FIPS PUB 180-4 | 256 bits / 64 hex | Web Crypto API / CryptoJS |
-| **SHA-512** | FIPS PUB 180-4 | 512 bits / 128 hex | Web Crypto API / CryptoJS |
-| **SHA3-256** | FIPS PUB 202 (Keccak) | 256 bits / 64 hex | CryptoJS (Streamed) |
-| **SHA3-512** | FIPS PUB 202 (Keccak) | 512 bits / 128 hex | CryptoJS (Streamed) |
+| MD5 | RFC 1321 | 128 bits / 32 hex characters | Legacy compatibility only. Not suitable for security-sensitive use. |
+| SHA-1 | FIPS PUB 180-4 | 160 bits / 40 hex characters | Legacy compatibility only. Not suitable for collision-resistant security use. |
+| SHA-256 | FIPS PUB 180-4 | 256 bits / 64 hex characters | SHA-2 family |
+| SHA-512 | FIPS PUB 180-4 | 512 bits / 128 hex characters | SHA-2 family |
+| SHA3-256 | FIPS 202 | 256 bits / 64 hex characters | Standard SHA-3, not legacy Keccak-256 |
+| SHA3-512 | FIPS 202 | 512 bits / 128 hex characters | Standard SHA-3, not legacy Keccak-512 |
 
-## Architecture
+## Implementation
 
-- **Execution Isolation**: Offloaded to dedicated Web Workers to ensure main UI thread remains responsive during large file calculations.
-- **Memory Management**: File uploads are processed in 4MB chunks via sequential ArrayBuffer streaming instead of loading entire files into memory.
-- **Hardware Acceleration**: Text hashing uses the native Web Crypto API (`crypto.subtle`) where supported.
-- **Offline & Private**: Zero network telemetry. All hashing occurs strictly in-memory within the client runtime.
+Hashing runs in a dedicated Web Worker and uses incremental digest updates for file chunks of 4 MiB. SHA-3 uses the standardized FIPS 202 algorithms. There is no server upload or telemetry: the contents being hashed remain in the browser.
 
-## Project Structure
+MD5 and SHA-1 remain available for legacy checksum comparison only. Do not use either to protect sensitive data or to verify data against an attacker who can deliberately construct collisions.
 
-```
-File-Hasher/
-├── public/                 # Static assets
-├── src/
-│   ├── components/         # UI components (FileUpload, HashCard, InputSection, ThemeManager)
-│   ├── workers/            # Web Worker for background digest processing
-│   ├── hashGenerator.ts    # HashEngine controller and task dispatcher
-│   ├── main.ts             # Application bootstrapping and lifecycle
-│   └── style.css           # Design system tokens and styling
-├── index.html              # HTML entry point
-├── package.json            # Dependencies and scripts
-├── tsconfig.json           # TypeScript configuration
-└── vite.config.ts          # Vite bundler configuration
-```
+## Requirements
 
-## Getting Started
+- Node.js 20.19.x or >= 22.12.0
+- npm >= 10.0.0
 
-### Prerequisites
-
-- Node.js >= 20.x
-- npm >= 10.x
-
-### Installation
+## Install and run
 
 ```bash
-npm install
-```
-
-### Development
-
-```bash
+npm ci
 npm run dev
 ```
 
-### Production Build
+Build the production site and serve it locally for inspection with:
 
 ```bash
 npm run build
-```
-
-The output bundle will be generated in `dist/`.
-
-### Preview Build
-
-```bash
 npm run preview
 ```
 
-## Deployment Targets
+The build output is written to `dist/`.
 
-Configurations are included for static hosting platforms:
+## Project structure
 
-- **Cloudflare Pages**: `wrangler.toml`
-- **Vercel**: `vercel.json`
-- **Netlify**: `netlify.toml`
-- **Docker**: `Dockerfile`
+```text
+File-Hasher/
+├── public/                 # Static assets
+├── src/
+│   ├── components/         # UI components
+│   ├── workers/            # Background hashing worker
+│   ├── hashGenerator.ts    # Worker task dispatcher and metadata
+│   ├── main.ts             # Application entry point
+│   └── style.css           # UI styles
+├── .github/workflows/      # CI and release workflows
+├── Dockerfile
+├── index.html
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+└── wrangler.toml
+```
+
+## Deployment
+
+Static-hosting configuration is included for Cloudflare Pages (`wrangler.toml`), Vercel (`vercel.json`) and Netlify (`netlify.toml`). A multi-stage `Dockerfile` builds the application and serves the static output with Nginx.
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+MIT. See [LICENSE](LICENSE).

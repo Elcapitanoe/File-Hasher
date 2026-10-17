@@ -19,8 +19,8 @@ class HashApp {
   private hashCards = new Map<HashAlgorithm, HashCard>();
   private inputSection!: InputSection;
   private fileUpload!: FileUpload;
-  private themeManager!: ThemeManager;
   private debounceTimer: number | null = null;
+  private fileOperationId = 0;
   private mode: "text" | "file" = "text";
 
   constructor() {
@@ -56,7 +56,7 @@ class HashApp {
         </main>
 
         <footer class="app-footer">
-          <p class="footer-note">Client-side cryptographic hashing via Web Workers and Web Crypto API.</p>
+          <p class="footer-note">Local file and text hashing in a background worker.</p>
           <div class="footer-links">
             <a href="https://github.com/Elcapitanoe/File-Hasher" target="_blank" rel="noopener noreferrer" class="footer-link">Source Repository</a>
           </div>
@@ -69,8 +69,8 @@ class HashApp {
   }
 
   private mount(): void {
-    this.themeManager = new ThemeManager();
-    document.getElementById("themeMount")?.appendChild(this.themeManager.getElement());
+    const themeManager = new ThemeManager();
+    document.getElementById("themeMount")?.appendChild(themeManager.getElement());
 
     this.inputSection = new InputSection(
       (val) => this.handleTextInput(val),
@@ -100,64 +100,83 @@ class HashApp {
           this.inputSection.focus();
         }
       }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "l") {
-        e.preventDefault();
-        this.inputSection.clearText();
-        this.handleClear();
-      }
     });
   }
 
   private handleTextInput(value: string): void {
     if (this.mode !== "text") return;
 
-    if (this.debounceTimer) {
+    if (this.debounceTimer !== null) {
       window.clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
     }
+    HashEngine.cancelPendingTasks();
 
     if (!value) {
       this.handleClear();
       return;
     }
 
+    this.hashCards.forEach((card) => card.setLoading());
     this.debounceTimer = window.setTimeout(() => {
       this.hashCards.forEach((card) => card.computeText(value));
     }, 200);
   }
 
   private handleClear(): void {
-    if (this.debounceTimer) {
+    this.fileOperationId += 1;
+    HashEngine.cancelPendingTasks();
+    if (this.debounceTimer !== null) {
       window.clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
     }
     this.hashCards.forEach((card) => card.setHash(""));
   }
 
   private handleModeChange(newMode: "text" | "file"): void {
     this.mode = newMode;
+
+    if (newMode === "text") {
+      this.fileUpload.clear();
+      return;
+    }
+
     this.handleClear();
   }
 
   private async handleFile(file: File): Promise<void> {
     if (this.mode !== "file") return;
 
+    const operationId = ++this.fileOperationId;
+    HashEngine.cancelPendingTasks();
     this.fileUpload.showProgress();
 
     const tasks = Array.from(this.hashCards.entries()).map(async ([algo, card]) => {
-      card.setLoading(true);
-      const onProgress = algo === "sha256" ? (p: number) => this.fileUpload.updateProgress(p) : undefined;
+      card.setLoading();
+      const onProgress = algo === "sha256"
+        ? (progress: number) => {
+            if (operationId === this.fileOperationId) {
+              this.fileUpload.updateProgress(progress);
+            }
+          }
+        : undefined;
 
       try {
         const hash = await HashEngine.hashFile(algo, file, onProgress);
-        card.setHash(hash);
-      } catch (err) {
-        card.setHash("Error computing digest");
-        console.error(`Hashing failed for ${algo}:`, err);
+        if (operationId === this.fileOperationId) card.setHash(hash);
+      } catch (error) {
+        if (operationId === this.fileOperationId) card.setError();
+        console.error(`Hashing failed for ${algo}:`, error);
       }
     });
 
     await Promise.all(tasks);
+    if (operationId !== this.fileOperationId) return;
+
     this.fileUpload.updateProgress(100);
-    window.setTimeout(() => this.fileUpload.hideProgress(), 800);
+    window.setTimeout(() => {
+      if (operationId === this.fileOperationId) this.fileUpload.hideProgress();
+    }, 800);
   }
 }
 
