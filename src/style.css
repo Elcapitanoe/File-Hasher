@@ -1,20 +1,22 @@
 :root {
-  --bg-app: #09090b;
-  --bg-panel: #121215;
-  --bg-surface: #18181b;
-  --bg-hover: #27272a;
+  --bg-app: #000000;
+  --bg-panel: #0a0a0a;
+  --bg-surface: #171717;
+  --bg-hover: #262626;
   
-  --text-primary: #f4f4f5;
-  --text-secondary: #a1a1aa;
-  --text-tertiary: #71717a;
+  --text-primary: #f5f5f5;
+  --text-secondary: #a3a3a3;
+  --text-tertiary: #737373;
   
-  --border-subtle: #27272a;
-  --border-strong: #3f3f46;
+  --border-subtle: #262626;
+  --border-strong: #404040;
   
-  --accent-color: #3b82f6;
-  --accent-glow: rgba(59, 130, 246, 0.15);
-  --success-color: #10b981;
-  --error-color: #ef4444;
+  --accent-color: #f5f5f5;
+  --accent-glow: rgba(245, 245, 245, 0.12);
+  --success-bg: rgba(16, 185, 129, 0.12);
+  --success-text: #34d399;
+  --error-bg: rgba(239, 68, 68, 0.12);
+  --error-text: #f87171;
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
   
@@ -27,19 +29,20 @@
 }
 
 [data-theme="light"] {
-  --bg-app: #f8fafc;
+  --bg-app: #ffffff;
   --bg-panel: #ffffff;
-  --bg-surface: #f1f5f9;
-  --bg-hover: #e2e8f0;
+  --bg-surface: #fafafa;
+  --bg-hover: #f4f4f4;
   
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --text-tertiary: #94a3b8;
+  --text-primary: #171717;
+  --text-secondary: #737373;
+  --text-tertiary: #a3a3a3;
   
-  --border-subtle: #e2e8f0;
-  --border-strong: #cbd5e1;
+  --border-subtle: #eaeaea;
+  --border-strong: #d4d4d4;
   
-  --accent-glow: rgba(59, 130, 246, 0.08);
+  --accent-color: #171717;
+  --accent-glow: rgba(23, 23, 23, 0.12);
   
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
@@ -321,7 +324,7 @@ body {
 
 .btn-remove:hover {
   background: var(--bg-hover);
-  color: var(--error-color);
+  color: var(--error-text);
 }
 
 .progress-container {
@@ -453,7 +456,8 @@ body {
 }
 
 .hash-value.error {
-  color: var(--error-color);
+  color: var(--error-text);
+  background: var(--error-bg);
 }
 
 .hash-value.empty {
@@ -468,7 +472,8 @@ body {
 }
 
 .btn-copy.success {
-  color: var(--success-color);
+  color: var(--success-text);
+  background: var(--success-bg);
 }
 
 .skeleton {
